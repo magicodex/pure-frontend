@@ -12,7 +12,7 @@ function Global() {
 // 全局配置
 Global.config = {
   // uiName 属性名称
-  uiNameAttributeName: 'data-ui-name',
+  uiNameAttributeName: 'data-pure-ui-name',
   // 主视图的样式类名
   mainViewClassName: 'pure-view-main',
   // 单页面基本URL
