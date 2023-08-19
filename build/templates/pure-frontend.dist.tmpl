@@ -1,0 +1,17 @@
+"use strict";
+
+/*!
+ * pure-frontend {{version}} (https://gitee.com/magicodex/pure-frontend)
+ * Licensed under MIT (https://gitee.com/magicodex/pure-frontend/blob/master/LICENSE)
+ */
+
+(function(global, namespace) {
+
+if (global[namespace] != null) {
+  return;
+}
+
+{{source}}
+
+global[namespace] = Pure;
+})(window, 'Pure');

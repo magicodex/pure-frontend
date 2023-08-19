@@ -1,0 +1,10 @@
+
+
+/* 提示信息 */
+.pure-app-alert {
+  width: 500px;
+  left: 50%;
+  margin-left: -250px;
+  z-index: 9999;
+  text-align: center;
+}
