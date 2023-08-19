@@ -8,8 +8,10 @@ type callbackFn = (scope: any) => void;
 
 export const config: {
     singlePageBaseUrl: string;
-    mainViewClassName: string;
     uiNameAttributeName: string;
+    viewStatusAttributeName: string;
+    viewIndexAttributeName: string;
+    tabIndexAttributeName: string;
 };
 
 export const messages: {
@@ -191,8 +193,10 @@ export namespace fn {
     namespace Global {
         const config: {
             singlePageBaseUrl: string;
-            mainViewClassName: string;
             uiNameAttributeName: string;
+            viewStatusAttributeName: string;
+            viewIndexAttributeName: string;
+            tabIndexAttributeName: string;
         };
 
         const messages: {

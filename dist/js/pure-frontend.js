@@ -26,6 +26,10 @@ Global.config = {
   uiNameAttributeName: 'data-pure-ui-name',
   // viewStatus 属性名称
   viewStatusAttributeName: 'data-pure-view-status',
+  // viewIndex 属性名称
+  viewIndexAttributeName: 'data-pure-view-index',
+  // tabIndex 属性名称
+  tabIndexAttributeName: 'data-pure-tab-index',
   // 单页面基本URL
   singlePageBaseUrl: '/'
 };
