@@ -680,7 +680,7 @@ function ViewLoader(targetElement) {
 
 ViewLoader.labelForSuffixGenerator = new SequenceGenerator(100001);
 ViewLoader.viewIndexSuffixGenerator = new SequenceGenerator(100001);
-ViewLoader.lastView = {};
+ViewLoader.lastViewInfo = {};
 
 /**
  * @function 加载视图
@@ -747,8 +747,8 @@ ViewLoader.prototype.renderView = function (url, data, textStatus, jqXHR) {
 
   var view = new View(jqElement[0], viewInfo);
   var viewScope = ViewManager.getViewScope(viewName);
-  ViewLoader.lastView.viewScope = Utils.emptyObjectIfNullOrUndefined(viewScope);
-  ViewLoader.lastView.appView = view;
+  ViewLoader.lastViewInfo.viewScope = Utils.emptyObjectIfNullOrUndefined(viewScope);
+  ViewLoader.lastViewInfo.view = view;
 
   if (viewScope === undefined || viewScope === null) {
     return;
@@ -808,6 +808,7 @@ function ViewManager() {
 }
 
 ViewManager.viewScopes = {};
+ViewManager.currentTabIndex = 'default';
 
 /**
  * @description 返回指定的视图作用域
@@ -867,7 +868,9 @@ ViewManager.loadView = function (url) {
   }
 
   var jqTargetElement = jQuery('.pure-app');
-  var jqAllViews = jqTargetElement.children('main');
+  var selector = Utils.formatString('main[{0}="{1}"]',
+    [Global.config.tabIndexAttributeName, ViewManager.currentTabIndex]);
+  var jqAllViews = jqTargetElement.children(selector);
 
   // 销毁所有视图
   jqAllViews.each(function (index, viewElement) {
@@ -906,11 +909,13 @@ ViewManager.popView = function (url) {
   }
 
   var jqTargetElement = jQuery('.pure-app');
-  var jqCurrentView = jqTargetElement.children('main').first();
+  var selector = Utils.formatString('main[{0}="{1}"]',
+    [Global.config.tabIndexAttributeName, ViewManager.currentTabIndex]);
+  var jqCurrentView = jqTargetElement.children(selector).first();
   // 销毁当前视图
   ViewManager.destroyView(jqCurrentView);
 
-  var jqNextView = jqTargetElement.children('main').first();
+  var jqNextView = jqTargetElement.children(selector).first();
   if (jqNextView.length > 0) {
     // 恢复视图
     ViewManager.resumeView(jqNextView);
@@ -929,6 +934,7 @@ ViewManager.doRenderView = function (url) {
 
   var jqNewView = jQuery('<main class="pure-view-main"></main>');
   jqNewView.attr(Global.config.viewStatusAttributeName, 'loading');
+  jqNewView.attr(Global.config.tabIndexAttributeName, ViewManager.currentTabIndex);
   jqNewView.prependTo(jqTargetElement);
 
   var viewLoader = new ViewLoader(jqNewView[0]);

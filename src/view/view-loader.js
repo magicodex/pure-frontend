@@ -26,7 +26,7 @@ function ViewLoader(targetElement) {
 
 ViewLoader.labelForSuffixGenerator = new SequenceGenerator(100001);
 ViewLoader.viewIndexSuffixGenerator = new SequenceGenerator(100001);
-ViewLoader.lastView = {};
+ViewLoader.lastViewInfo = {};
 
 /**
  * @function 加载视图
@@ -93,8 +93,8 @@ ViewLoader.prototype.renderView = function (url, data, textStatus, jqXHR) {
 
   var view = new View(jqElement[0], viewInfo);
   var viewScope = ViewManager.getViewScope(viewName);
-  ViewLoader.lastView.viewScope = Utils.emptyObjectIfNullOrUndefined(viewScope);
-  ViewLoader.lastView.appView = view;
+  ViewLoader.lastViewInfo.viewScope = Utils.emptyObjectIfNullOrUndefined(viewScope);
+  ViewLoader.lastViewInfo.view = view;
 
   if (viewScope === undefined || viewScope === null) {
     return;

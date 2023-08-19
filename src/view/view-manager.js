@@ -16,6 +16,7 @@ function ViewManager() {
 }
 
 ViewManager.viewScopes = {};
+ViewManager.currentTabIndex = 'default';
 
 /**
  * @description 返回指定的视图作用域
@@ -75,7 +76,9 @@ ViewManager.loadView = function (url) {
   }
 
   var jqTargetElement = jQuery('.pure-app');
-  var jqAllViews = jqTargetElement.children('main');
+  var selector = Utils.formatString('main[{0}="{1}"]',
+    [Global.config.tabIndexAttributeName, ViewManager.currentTabIndex]);
+  var jqAllViews = jqTargetElement.children(selector);
 
   // 销毁所有视图
   jqAllViews.each(function (index, viewElement) {
@@ -114,11 +117,13 @@ ViewManager.popView = function (url) {
   }
 
   var jqTargetElement = jQuery('.pure-app');
-  var jqCurrentView = jqTargetElement.children('main').first();
+  var selector = Utils.formatString('main[{0}="{1}"]',
+    [Global.config.tabIndexAttributeName, ViewManager.currentTabIndex]);
+  var jqCurrentView = jqTargetElement.children(selector).first();
   // 销毁当前视图
   ViewManager.destroyView(jqCurrentView);
 
-  var jqNextView = jqTargetElement.children('main').first();
+  var jqNextView = jqTargetElement.children(selector).first();
   if (jqNextView.length > 0) {
     // 恢复视图
     ViewManager.resumeView(jqNextView);
@@ -137,6 +142,7 @@ ViewManager.doRenderView = function (url) {
 
   var jqNewView = jQuery('<main class="pure-view-main"></main>');
   jqNewView.attr(Global.config.viewStatusAttributeName, 'loading');
+  jqNewView.attr(Global.config.tabIndexAttributeName, ViewManager.currentTabIndex);
   jqNewView.prependTo(jqTargetElement);
 
   var viewLoader = new ViewLoader(jqNewView[0]);
