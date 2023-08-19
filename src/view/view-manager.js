@@ -74,23 +74,16 @@ ViewManager.loadView = function (url) {
     throw new Error('argument#0 "url" required string');
   }
 
-  var selector = Utils.formatString('[{0}="{1}"]',
-    [Global.config.viewStatusAttributeName, 'show']);
-  var jqElement = jQuery(selector);
+  var jqTargetElement = jQuery('.pure-app');
+  var jqAllViews = jqTargetElement.children('main');
 
-  if (jqElement.length <= 0) {
-    return;
-  }
+  // 销毁所有视图
+  jqAllViews.each(function (index, viewElement) {
+    ViewManager.destroyView(jQuery(viewElement));
+  });
 
-  ViewManager.onViewCreate(jqElement);
-  jqElement.attr(Global.config.viewStatusAttributeName, 'loading');
-  jqElement.removeAttr(Global.config.viewIndexAttributeName);
-
-  var viewLoader = new ViewLoader(jqElement[0]);
-  viewLoader.loadView(url);
-
-  jqElement.attr(Global.config.viewStatusAttributeName, 'show');
-  ViewManager.onViewCreate(jqElement);
+  // 加载视图
+  ViewManager.doRenderView(url);
 };
 
 /**
@@ -102,7 +95,13 @@ ViewManager.pushView = function (url) {
     throw new Error('argument#0 "url" required string');
   }
 
-  ViewManager.loadView(url);
+  var jqTargetElement = jQuery('.pure-app');
+  var jqCurrentView = jqTargetElement.children('main').first();
+  // 暂停当前视图
+  ViewManager.pauseView(jqCurrentView);
+
+  // 加载视图
+  ViewManager.doRenderView(url);
 };
 
 /**
@@ -114,10 +113,44 @@ ViewManager.popView = function (url) {
     throw new Error('argument#0 "url" required string');
   }
 
-  ViewManager.loadView(url);
+  var jqTargetElement = jQuery('.pure-app');
+  var jqCurrentView = jqTargetElement.children('main').first();
+  // 销毁当前视图
+  ViewManager.destroyView(jqCurrentView);
+
+  var jqNextView = jqTargetElement.children('main').first();
+  if (jqNextView.length > 0) {
+    // 恢复视图
+    ViewManager.resumeView(jqNextView);
+  } else {
+    // 加载视图
+    ViewManager.doRenderView(url);
+  }
 };
 
-ViewManager.onViewCreate = function (jqView) {
+/**
+ * @description 加载视图
+ * @param {string} url URL字符串
+ */
+ViewManager.doRenderView = function (url) {
+  var jqTargetElement = jQuery('.pure-app');
+
+  var jqNewView = jQuery('<main class="pure-view-main"></main>');
+  jqNewView.attr(Global.config.viewStatusAttributeName, 'loading');
+  jqNewView.prependTo(jqTargetElement);
+
+  var viewLoader = new ViewLoader(jqNewView[0]);
+  viewLoader.loadView(url);
+  // 初始视图
+  ViewManager.initView(jqNewView);
+};
+
+/**
+ * @description 初始视图
+ * @param {jQuery} jqView 
+ */
+ViewManager.initView = function (jqView) {
+  jqView.attr(Global.config.viewStatusAttributeName, 'show');
   var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
 
   if (Utils.isNotEmptyString(viewIndex)) {
@@ -125,6 +158,7 @@ ViewManager.onViewCreate = function (jqView) {
 
     if (!Utils.isNullOrUndefined(viewScope)) {
       var onViewCreate = viewScope.onViewCreate;
+
       if (!Utils.isNullOrUndefined(onViewCreate)) {
         onViewCreate();
       }
@@ -132,15 +166,11 @@ ViewManager.onViewCreate = function (jqView) {
   }
 };
 
-ViewManager.onViewPause = function (jqView) {
-
-};
-
-ViewManager.onViewResume = function (jqView) {
-
-};
-
-ViewManager.onViewDestroy = function (jqView) {
+/**
+ * @description 销毁视图
+ * @param {jQuery} jqView 
+ */
+ViewManager.destroyView = function (jqView) {
   var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
 
   if (Utils.isNotEmptyString(viewIndex)) {
@@ -148,11 +178,58 @@ ViewManager.onViewDestroy = function (jqView) {
 
     if (!Utils.isNullOrUndefined(viewScope)) {
       var onViewDestroy = viewScope.onViewDestroy;
+
       if (!Utils.isNullOrUndefined(onViewDestroy)) {
         onViewDestroy();
       }
 
       ViewManager.removeViewScope(viewIndex);
+    }
+  }
+
+  jqView.remove();
+};
+
+/**
+ * @description 暂停视图
+ * @param {jQuery} jqView 
+ */
+ViewManager.pauseView = function (jqView) {
+  jqView.attr(Global.config.viewStatusAttributeName, 'hidden');
+  jqView.css('visibility', 'hidden');
+  var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
+
+  if (Utils.isNotEmptyString(viewIndex)) {
+    var viewScope = ViewManager.getViewScope(viewIndex, false);
+
+    if (!Utils.isNullOrUndefined(viewScope)) {
+      var onViewPause = viewScope.onViewPause;
+
+      if (!Utils.isNullOrUndefined(onViewPause)) {
+        onViewPause();
+      }
+    }
+  }
+};
+
+/**
+ * @description 恢复视图
+ * @param {jQuery} jqView 
+ */
+ViewManager.resumeView = function (jqView) {
+  jqView.attr(Global.config.viewStatusAttributeName, 'show');
+  jqView.css('visibility', 'visible');
+  var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
+
+  if (Utils.isNotEmptyString(viewIndex)) {
+    var viewScope = ViewManager.getViewScope(viewIndex, false);
+
+    if (!Utils.isNullOrUndefined(viewScope)) {
+      var onViewResume = viewScope.onViewResume;
+
+      if (!Utils.isNullOrUndefined(onViewResume)) {
+        onViewResume();
+      }
     }
   }
 };

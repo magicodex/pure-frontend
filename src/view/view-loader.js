@@ -42,14 +42,16 @@ ViewLoader.prototype.loadView = function (url) {
     type: 'POST'
   });
 
+  var viewLoader = this;
+
   deferred.done(function (data, textStatus, jqXHR) {
     // 判断是否需要渲染视图
-    if (!this.preRenderView(url, data, textStatus, jqXHR)) {
+    if (!viewLoader.preRenderView(url, data, textStatus, jqXHR)) {
       return;
     }
 
     // 渲染视图
-    this.renderView(url, data, textStatus, jqXHR);
+    viewLoader.renderView(url, data, textStatus, jqXHR);
   });
 };
 
@@ -116,13 +118,9 @@ ViewLoader.prototype.renderView = function (url, data, textStatus, jqXHR) {
 
 /**
  * @description 在渲染视图后初始
- * @param {jQuery} jqView 
  */
-ViewLoader.initViewAfterRender = function (jqView) {
-  if (Utils.isNullOrUndefined(jqView)) {
-    throw new Error('argument#0 "jqView" is null/undefined');
-  }
-
+ViewLoader.prototype.initViewAfterRender = function () {
+  var jqView = jQuery(this._targetElement);
   var jqLabel = jqView.find('label[for]');
 
   // 每个 label 标签对应的 id 加上后缀，
