@@ -14,19 +14,25 @@ import { ViewResponse } from './view-response';
 /**
  * 视图加载器
  * @class
+ * @param {(Document|Element)} targetElement 
  */
-function ViewLoader() {
-  //
+function ViewLoader(targetElement) {
+  if (Utils.isNullOrUndefined(targetElement)) {
+    throw new Error('argument#0 "targetElement is null/undefined');
+  }
+
+  this._targetElement = targetElement;
 }
 
-ViewLoader.sequenceGenerator = new SequenceGenerator(100001);
+ViewLoader.labelForSuffixGenerator = new SequenceGenerator(100001);
+ViewLoader.viewIndexSuffixGenerator = new SequenceGenerator(100001);
 ViewLoader.lastView = {};
 
 /**
  * @function 加载视图
  * @param {string} url 
  */
-ViewLoader.loadView = function (url) {
+ViewLoader.prototype.loadView = function (url) {
   if (!Utils.isString(url)) {
     throw new Error('argument#0 "url" required string');
   }
@@ -38,12 +44,12 @@ ViewLoader.loadView = function (url) {
 
   deferred.done(function (data, textStatus, jqXHR) {
     // 判断是否需要渲染视图
-    if (!ViewLoader.preRenderView(url, data, textStatus, jqXHR)) {
+    if (!this.preRenderView(url, data, textStatus, jqXHR)) {
       return;
     }
 
     // 渲染视图
-    ViewLoader.renderView(url, data, textStatus, jqXHR);
+    this.renderView(url, data, textStatus, jqXHR);
   });
 };
 
@@ -54,7 +60,7 @@ ViewLoader.loadView = function (url) {
  * @param {string} textStatus 
  * @param {jQuery.jqXHR} jqXHR 
  */
-ViewLoader.preRenderView = function (url, data, textStatus, jqXHR) {
+ViewLoader.prototype.preRenderView = function (url, data, textStatus, jqXHR) {
   return true;
 };
 
@@ -65,7 +71,7 @@ ViewLoader.preRenderView = function (url, data, textStatus, jqXHR) {
  * @param {string} textStatus 
  * @param {jQuery.jqXHR} jqXHR 
  */
-ViewLoader.renderView = function (url, data, textStatus, jqXHR) {
+ViewLoader.prototype.renderView = function (url, data, textStatus, jqXHR) {
   if (!Utils.isString(url)) {
     throw new Error('argument#0 "url" required string');
   }
@@ -73,25 +79,32 @@ ViewLoader.renderView = function (url, data, textStatus, jqXHR) {
   var viewResponse = new ViewResponse(url, jqXHR);
   var viewInfo = viewResponse.getViewInfo();
   var viewName = viewInfo.getViewName();
-  var viewSelector = Utils.formatString('[{0}="{1}"]',
-    [Global.config.viewStatusAttributeName, 'show']);
-  var jqView = jQuery(viewSelector);
+  var jqElement = jQuery(this._targetElement);
 
-  jqView.attr('id', viewName);
+  jqElement.attr('id', viewName);
   // 渲染视图
-  jqView.html(data);
+  jqElement.html(data);
   // 执行初始逻辑
-  ViewLoader.initViewAfterRender(jqView);
+  this.initViewAfterRender(jqElement);
   // 修改浏览器URL
   BrowserUrl.setBrowserUrl(url);
 
-  var view = new View(jqView[0], viewInfo);
+  var view = new View(jqElement[0], viewInfo);
   var viewScope = ViewManager.getViewScope(viewName);
   ViewLoader.lastView.viewScope = Utils.emptyObjectIfNullOrUndefined(viewScope);
   ViewLoader.lastView.appView = view;
 
   if (viewScope === undefined || viewScope === null) {
     return;
+  } else {
+    var sequenceGenerator = ViewLoader.viewIndexSuffixGenerator;
+    var sequenceNumber = sequenceGenerator.nextValue();
+    var viewIndex = viewName + '_' + sequenceNumber;
+
+    jqElement.attr(Global.config.viewIndexAttributeName, viewIndex);
+    // 修改视图作用域的名称以支持同时加载多个相同的视图
+    ViewManager.setViewScope(viewIndex, viewScope);
+    ViewManager.removeViewScope(viewName);
   }
 
   var mainFn = viewScope.main;
@@ -118,7 +131,7 @@ ViewLoader.initViewAfterRender = function (jqView) {
     var id = labelElement.getAttribute('for');
 
     if (Utils.isNotEmptyString(id)) {
-      var sequenceGenerator = ViewLoader.sequenceGenerator;
+      var sequenceGenerator = ViewLoader.labelForSuffixGenerator;
       var sequenceNumber = sequenceGenerator.nextValue();
       var newId = id + '_' + sequenceNumber;
 
