@@ -28,7 +28,7 @@ BrowserUrl.getBrowserUrl = function (viewUrl) {
   var newUrl = viewUrl.startsWith('/')
     ? ('#' + viewUrl)
     : ('#/' + viewUrl);
-  newUrl = BrowserUrl.getFullUrl(Global.config.appUrl) + newUrl;
+  newUrl = BrowserUrl.getFullUrl(Global.config.singlePageBaseUrl) + newUrl;
 
   return newUrl;
 };

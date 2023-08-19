@@ -7,9 +7,9 @@ type mainFn = (scope: any, view: fn.View) => void;
 type callbackFn = (scope: any) => void;
 
 export const config: {
-    appUrl: string;
+    singlePageBaseUrl: string;
     mainViewClassName: string;
-    tagKeyAttributeName: string;
+    uiNameAttributeName: string;
 };
 
 export const messages: {
@@ -190,9 +190,9 @@ export namespace fn {
 
     namespace Global {
         const config: {
-            appUrl: string;
+            singlePageBaseUrl: string;
             mainViewClassName: string;
-            tagKeyAttributeName: string;
+            uiNameAttributeName: string;
         };
 
         const messages: {

@@ -28,7 +28,7 @@ function View(viewElement, viewInfo) {
 
   this._viewElement = viewElement;
   this._viewInfo = viewInfo;
-  this._tagKeyAttributeName = Global.config.tagKeyAttributeName;
+  this._uiNameAttributeName = Global.config.uiNameAttributeName;
   this._dataModel = new uiData.Model(viewElement);
 
   var fullUrl = viewInfo.getFullUrl();
@@ -101,7 +101,7 @@ View.prototype.$find = function () {
 };
 
 /**
- * @description 查找标签元素，通过 Global.config.tagKeyAttributeName 指定的属性
+ * @description 查找标签元素，通过 Global.config.uiNameAttributeName 指定的属性
  * @param {string} name
  * @returns {jQuery}
  */
@@ -112,7 +112,7 @@ View.prototype.$ui = function (name) {
 
   var jqElement = jQuery(this._viewElement);
   var selector = Utils.formatString("[{0}={1}]",
-    [this._tagKeyAttributeName, name]);
+    [this._uiNameAttributeName, name]);
 
   return jqElement.find(selector);
 };

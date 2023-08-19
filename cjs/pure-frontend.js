@@ -16,12 +16,12 @@ function Global() {
 
 // 全局配置
 Global.config = {
-  // 标签 key 的属性名
-  tagKeyAttributeName: 'data-ui',
+  // uiName 属性名称
+  uiNameAttributeName: 'data-ui-name',
   // 主视图的样式类名
   mainViewClassName: 'pure-view-main',
-  // 应用的 URL
-  appUrl: '/'
+  // 单页面基本URL
+  singlePageBaseUrl: '/'
 };
 
 // 全局多语言信息
@@ -396,7 +396,7 @@ BrowserUrl.getBrowserUrl = function (viewUrl) {
   var newUrl = viewUrl.startsWith('/')
     ? ('#' + viewUrl)
     : ('#/' + viewUrl);
-  newUrl = BrowserUrl.getFullUrl(Global.config.appUrl) + newUrl;
+  newUrl = BrowserUrl.getFullUrl(Global.config.singlePageBaseUrl) + newUrl;
 
   return newUrl;
 };
@@ -477,7 +477,7 @@ function View(viewElement, viewInfo) {
 
   this._viewElement = viewElement;
   this._viewInfo = viewInfo;
-  this._tagKeyAttributeName = Global.config.tagKeyAttributeName;
+  this._uiNameAttributeName = Global.config.uiNameAttributeName;
   this._dataModel = new uiData.Model(viewElement);
 
   var fullUrl = viewInfo.getFullUrl();
@@ -550,7 +550,7 @@ View.prototype.$find = function () {
 };
 
 /**
- * @description 查找标签元素，通过 Global.config.tagKeyAttributeName 指定的属性
+ * @description 查找标签元素，通过 Global.config.uiNameAttributeName 指定的属性
  * @param {string} name
  * @returns {jQuery}
  */
@@ -561,7 +561,7 @@ View.prototype.$ui = function (name) {
 
   var jqElement = jQuery(this._viewElement);
   var selector = Utils.formatString("[{0}={1}]",
-    [this._tagKeyAttributeName, name]);
+    [this._uiNameAttributeName, name]);
 
   return jqElement.find(selector);
 };
