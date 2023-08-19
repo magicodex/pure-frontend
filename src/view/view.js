@@ -111,7 +111,7 @@ View.prototype.$ui = function (name) {
   }
 
   var jqElement = jQuery(this._viewElement);
-  var selector = Utils.formatString("[{0}={1}]",
+  var selector = Utils.formatString('[{0}="{1}"]',
     [this._uiNameAttributeName, name]);
 
   return jqElement.find(selector);

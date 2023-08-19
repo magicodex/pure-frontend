@@ -73,7 +73,8 @@ ViewLoader.renderView = function (url, data, textStatus, jqXHR) {
   var viewResponse = new ViewResponse(url, jqXHR);
   var viewInfo = viewResponse.getViewInfo();
   var viewName = viewInfo.getViewName();
-  var viewSelector = '.' + Global.config.mainViewClassName;
+  var viewSelector = Utils.formatString('[{0}="{1}"]',
+    [Global.config.viewStatusAttributeName, 'show']);
   var jqView = jQuery(viewSelector);
 
   jqView.attr('id', viewName);

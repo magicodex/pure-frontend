@@ -24,8 +24,8 @@ function Global() {
 Global.config = {
   // uiName 属性名称
   uiNameAttributeName: 'data-pure-ui-name',
-  // 主视图的样式类名
-  mainViewClassName: 'pure-view-main',
+  // viewStatus 属性名称
+  viewStatusAttributeName: 'data-pure-view-status',
   // 单页面基本URL
   singlePageBaseUrl: '/'
 };
@@ -566,7 +566,7 @@ View.prototype.$ui = function (name) {
   }
 
   var jqElement = jQuery(this._viewElement);
-  var selector = Utils.formatString("[{0}={1}]",
+  var selector = Utils.formatString('[{0}="{1}"]',
     [this._uiNameAttributeName, name]);
 
   return jqElement.find(selector);
@@ -729,7 +729,8 @@ ViewLoader.renderView = function (url, data, textStatus, jqXHR) {
   var viewResponse = new ViewResponse(url, jqXHR);
   var viewInfo = viewResponse.getViewInfo();
   var viewName = viewInfo.getViewName();
-  var viewSelector = '.' + Global.config.mainViewClassName;
+  var viewSelector = Utils.formatString('[{0}="{1}"]',
+    [Global.config.viewStatusAttributeName, 'show']);
   var jqView = jQuery(viewSelector);
 
   jqView.attr('id', viewName);

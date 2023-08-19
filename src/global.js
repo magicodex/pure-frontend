@@ -13,8 +13,8 @@ function Global() {
 Global.config = {
   // uiName 属性名称
   uiNameAttributeName: 'data-pure-ui-name',
-  // 主视图的样式类名
-  mainViewClassName: 'pure-view-main',
+  // viewStatus 属性名称
+  viewStatusAttributeName: 'data-pure-view-status',
   // 单页面基本URL
   singlePageBaseUrl: '/'
 };
