@@ -1,7 +1,7 @@
 
 "use strict";
 
-QUnit.module('SequenceGenerator', function () {
+QUnit.module('ViewInfo', function () {
   var ViewInfo = Pure.fn.ViewInfo;
 
   QUnit.test('test', function (assert) {
