@@ -4,14 +4,14 @@ import { Model } from "ui-data";
 import JQuery from 'jquery';
 
 type mainFn = (scope: any, view: fn.View) => void;
-type callbackFn = (scope: any) => void;
+type viewScopeCallbackFn = (scope: any) => void;
 
 export const config: {
     singlePageBaseUrl: string;
-    uiNameAttributeName: string;
-    viewStatusAttributeName: string;
-    viewIndexAttributeName: string;
     tabIndexAttributeName: string;
+    uiNameAttributeName: string;
+    viewIndexAttributeName: string;
+    viewStatusAttributeName: string;
 };
 
 export const messages: {
@@ -26,25 +26,56 @@ export function app(): void;
 export function utils(): void;
 
 export namespace app {
+
+    /**
+     * @description 加载视图
+     * @param {string} url URL字符串
+     */
     function loadView(url: any): void;
 
+    /**
+     * @description 返回到之前的视图
+     * @param {string} url URL字符串
+     */
     function popView(url: any): void;
 
+    /**
+     * @description 加载视图并添加到堆栈顶部
+     * @param {string} url URL字符串
+     */
     function pushView(url: any): void;
 
+    /**
+     * @description 显示错误信息
+     * @param {string} message 
+     */
     function showError(message: any): void;
 
+    /**
+     * @description 显示信息
+     * @param {string} message 
+     */
     function showMessage(message: any): void;
 
+    /**
+     * @description 注册视图主函数
+     * @param {string} viewName 
+     * @param {function} mainFn 
+     */
     function viewMain(viewName: any, mainFn: mainFn): void;
 
-    function viewScope(viewName: any, callbackFn: callbackFn): void;
+    /**
+     * @description 初始视图作用域
+     * @param {string} viewName 
+     * @param {function} callbackFn 
+     */
+    function viewScope(viewName: any, callbackFn: viewScopeCallbackFn): void;
 
 }
 
 export namespace fn {
     class AjaxCallService {
-        constructor(targetElement: any);
+        constructor(sourceElement: any);
 
         beforeSend(jqXHR: any, settings: any): void;
 
@@ -53,15 +84,15 @@ export namespace fn {
     }
 
     class AjaxResult {
-        constructor(deferred: any, targetElement: any);
+        constructor(deferred: any, sourceElement: any);
 
-        doHandleDeferred(deferred: any, doneFn: any, failFn: any, showMask: any): any;
-
-        handleAjaxError(jqXHR: any, textStatus: any, errorThrown: any): void;
+        doHandleResult(doneFn: any, failFn: any, showMask: any): any;
 
         thenResult(doneFn: any, failFn: any): any;
 
         waitResult(doneFn: any, failFn: any): any;
+
+        static handleAjaxError(sourceElement: any, jqXHR: any, textStatus: any, errorThrown: any): void;
 
     }
 
@@ -110,6 +141,22 @@ export namespace fn {
 
     }
 
+    class ViewLoader {
+        constructor(targetElement: any, callbackFn: any);
+
+        initViewAfterRender(): void;
+
+        loadView(url: any): void;
+
+        preRenderView(url: any, data: any, textStatus: any, jqXHR: any): boolean;
+
+        renderView(url: any, data: any, textStatus: any, jqXHR: any): void;
+
+        static lastViewInfo: {
+        };
+
+    }
+
     class ViewMask {
         constructor(viewElement: any);
 
@@ -146,8 +193,6 @@ export namespace fn {
 
     function Utils(): void;
 
-    function ViewLoader(): void;
-
     function ViewManager(): void;
 
     namespace Ajax {
@@ -168,7 +213,7 @@ export namespace fn {
 
         function viewMain(viewName: any, mainFn: mainFn): void;
 
-        function viewScope(viewName: any, callbackFn: callbackFn): void;
+        function viewScope(viewName: any, callbackFn: viewScopeCallbackFn): void;
 
     }
 
@@ -193,10 +238,10 @@ export namespace fn {
     namespace Global {
         const config: {
             singlePageBaseUrl: string;
-            uiNameAttributeName: string;
-            viewStatusAttributeName: string;
-            viewIndexAttributeName: string;
             tabIndexAttributeName: string;
+            uiNameAttributeName: string;
+            viewIndexAttributeName: string;
+            viewStatusAttributeName: string;
         };
 
         const messages: {
@@ -247,17 +292,6 @@ export namespace fn {
     }
 
     namespace ViewLoader {
-        const lastView: {
-        };
-
-        function initViewAfterRender(jqView: any): void;
-
-        function loadView(url: any): void;
-
-        function preRenderView(url: any, data: any, textStatus: any, jqXHR: any): any;
-
-        function renderView(url: any, data: any, textStatus: any, jqXHR: any): void;
-
         namespace sequenceGenerator {
             function nextValue(): any;
 
@@ -266,16 +300,41 @@ export namespace fn {
     }
 
     namespace ViewManager {
+        const appSelector: string;
+
+        const currentTab: {
+            tabIndex: string;
+        };
+
         const viewScopes: {
         };
 
-        function getViewScope(viewName: any): any;
+        function destroyView(viewElement: any): void;
+
+        function doRenderView(url: any): void;
+
+        function getViewScope(viewName: any, allowCreate: boolean): any;
+
+        function initView(viewElement: any): void;
 
         function loadView(url: any): void;
+
+        function pauseView(viewElement: any): void;
 
         function popView(url: any): void;
 
         function pushView(url: any): void;
+
+        function removeViewScope(viewName: any): void;
+
+        function resumeView(viewElement: any): void;
+
+        function setViewScope(viewName: any, viewScope: any): void;
+
+        namespace sequenceGenerator {
+            function nextValue(): any;
+
+        }
 
     }
 

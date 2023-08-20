@@ -1435,7 +1435,7 @@ App.loadView = function (url) {
 };
 
 /**
- * @description 加载视图并添加到栈中
+ * @description 加载视图并添加到堆栈顶部
  * @param {string} url URL字符串
  */
 App.pushView = function (url) {
@@ -1443,7 +1443,7 @@ App.pushView = function (url) {
 };
 
 /**
- * @description 从栈顶移除视图并显示该视图
+ * @description 返回到之前的视图
  * @param {string} url URL字符串
  */
 App.popView = function (url) {
