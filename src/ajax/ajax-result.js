@@ -9,15 +9,15 @@ import { App } from '../app/app';
  * Ajax结果
  * @class
  * @param {jQuery.Deferred} deferred 
- * @param {(Document|Element)} [targetElement] 
+ * @param {(Document|Element)} [sourceElement] 
  */
-function AjaxResult(deferred, targetElement) {
+function AjaxResult(deferred, sourceElement) {
   if (Utils.isNullOrUndefined(deferred)) {
     throw new Error('argument#0 "deferred" is null/undefined');
   }
 
   this._deferred = deferred;
-  this._targetElement = targetElement;
+  this._sourceElement = sourceElement;
 }
 
 /**
@@ -27,7 +27,7 @@ function AjaxResult(deferred, targetElement) {
  * @returns {jQuery.Deferred}
  */
 AjaxResult.prototype.thenResult = function (doneFn, failFn) {
-  return this.doHandleDeferred(doneFn, failFn, false);
+  return this.doHandleResult(doneFn, failFn, false);
 };
 
 /**
@@ -37,7 +37,7 @@ AjaxResult.prototype.thenResult = function (doneFn, failFn) {
  * @returns {jQuery.Deferred}
  */
 AjaxResult.prototype.waitResult = function (doneFn, failFn) {
-  return this.doHandleDeferred(doneFn, failFn, true);
+  return this.doHandleResult(doneFn, failFn, true);
 };
 
 /**
@@ -47,7 +47,7 @@ AjaxResult.prototype.waitResult = function (doneFn, failFn) {
  * @param {boolean} showMask 
  * @returns {jQuery.Deferred}
  */
-AjaxResult.prototype.doHandleDeferred = function (doneFn, failFn, showMask) {
+AjaxResult.prototype.doHandleResult = function (doneFn, failFn, showMask) {
   if (!Utils.isFunction(doneFn)) {
     throw new Error('argument#1 "doneFn" required function');
   }
@@ -55,14 +55,14 @@ AjaxResult.prototype.doHandleDeferred = function (doneFn, failFn, showMask) {
   if (Utils.isNullOrUndefined(failFn)) {
     // 默认的错误处理
     failFn = function (jqXHR, textStatus, errorThrown) {
-      AjaxResult.handleAjaxError(this._targetElement, jqXHR, textStatus, errorThrown);
+      AjaxResult.handleAjaxError(this._sourceElement, jqXHR, textStatus, errorThrown);
     };
   }
 
   var deferred = this._deferred;
 
-  if (showMask && !Utils.isNullOrUndefined(this._targetElement)) {
-    var viewMask = new ViewMask(this._targetElement);
+  if (showMask && !Utils.isNullOrUndefined(this._sourceElement)) {
+    var viewMask = new ViewMask(this._sourceElement);
     // 显示遮罩层
     viewMask.showMask();
 
@@ -92,12 +92,12 @@ AjaxResult.prototype.doHandleDeferred = function (doneFn, failFn, showMask) {
 
 /**
  * @description 处理 AJAX 错误
- * @param {(Document|Element)} targetElement
+ * @param {(Document|Element)} sourceElement
  * @param {jQuery.jqXHR} jqXHR 
  * @param {string} textStatus 
  * @param {string} errorThrown 
  */
-AjaxResult.handleAjaxError = function (targetElement, jqXHR, textStatus, errorThrown) {
+AjaxResult.handleAjaxError = function (sourceElement, jqXHR, textStatus, errorThrown) {
   if (Utils.isNullOrUndefined(jqXHR)) {
     throw new Error('argument#0 "jqXHR" is null/undefined');
   }

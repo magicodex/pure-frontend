@@ -7,10 +7,10 @@ import { AjaxResult } from './ajax-result';
 
 /**
  * @class
- * @param {(Document|Element)} [targetElement] 
+ * @param {(Document|Element)} [sourceElement] 
  */
-function AjaxCallService(targetElement) {
-  this._targetElement = targetElement;
+function AjaxCallService(sourceElement) {
+  this._sourceElement = sourceElement;
 }
 
 /**
@@ -44,7 +44,7 @@ AjaxCallService.prototype.callService = function (url, data, opts) {
 
   var newOpts = Utils.concatObjects([initOpts, opts]);
   var deferred = jQuery.ajax(newOpts);
-  var ajaxResult = new AjaxResult(deferred, this._targetElement);
+  var ajaxResult = new AjaxResult(deferred, this._sourceElement);
 
   return ajaxResult;
 };

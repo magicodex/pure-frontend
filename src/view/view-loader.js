@@ -87,11 +87,11 @@ ViewLoader.prototype.renderView = function (url, data, textStatus, jqXHR) {
   // 渲染视图
   jqElement.html(data);
   // 执行初始逻辑
-  this.initViewAfterRender(jqElement);
+  this.initViewAfterRender();
   // 修改浏览器URL
   BrowserUrl.setBrowserUrl(url);
 
-  var view = new View(jqElement[0], viewInfo);
+  var view = new View(this._targetElement, viewInfo);
   var viewScope = ViewManager.getViewScope(viewName);
   ViewLoader.lastViewInfo.viewScope = Utils.emptyObjectIfNullOrUndefined(viewScope);
   ViewLoader.lastViewInfo.view = view;
