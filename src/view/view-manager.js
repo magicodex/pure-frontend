@@ -16,7 +16,9 @@ function ViewManager() {
 }
 
 ViewManager.viewScopes = {};
-ViewManager.currentTabIndex = 'default';
+ViewManager.currentTab = { tabIndex: 'default' };
+ViewManager.sequenceGenerator = new SequenceGenerator(100001);
+ViewManager.appSelector = '.pure-app';
 
 /**
  * @description 返回指定的视图作用域
@@ -75,17 +77,17 @@ ViewManager.loadView = function (url) {
     throw new Error('argument#0 "url" required string');
   }
 
-  var jqTargetElement = jQuery('.pure-app');
-  var selector = Utils.formatString('main[{0}="{1}"]',
-    [Global.config.tabIndexAttributeName, ViewManager.currentTabIndex]);
-  var jqAllViews = jqTargetElement.children(selector);
+  var jqViewParent = jQuery(ViewManager.appSelector);
+  var viewSelector = Utils.formatString('main[{0}="{1}"]',
+    [Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex]);
+  var jqView = jqViewParent.children(viewSelector);
 
   // 销毁所有视图
-  jqAllViews.each(function (index, viewElement) {
-    ViewManager.destroyView(jQuery(viewElement));
+  jqView.each(function (index, viewElement) {
+    ViewManager.destroyView(viewElement);
   });
 
-  // 加载视图
+  // 加载新的视图
   ViewManager.doRenderView(url);
 };
 
@@ -98,12 +100,17 @@ ViewManager.pushView = function (url) {
     throw new Error('argument#0 "url" required string');
   }
 
-  var jqTargetElement = jQuery('.pure-app');
-  var jqCurrentView = jqTargetElement.children('main').first();
-  // 暂停当前视图
-  ViewManager.pauseView(jqCurrentView);
+  var jqViewParent = jQuery(ViewManager.appSelector);
+  var viewSelector = Utils.formatString('main[{0}="{1}"]:first',
+    [Global.config.viewStatusAttributeName, 'show']);
+  var jqCurrentView = jqViewParent.children(viewSelector);
 
-  // 加载视图
+  if (jqCurrentView.length > 0) {
+    // 暂停当前视图
+    ViewManager.pauseView(jqCurrentView[0]);
+  }
+
+  // 加载新的视图
   ViewManager.doRenderView(url);
 };
 
@@ -116,19 +123,22 @@ ViewManager.popView = function (url) {
     throw new Error('argument#0 "url" required string');
   }
 
-  var jqTargetElement = jQuery('.pure-app');
-  var selector = Utils.formatString('main[{0}="{1}"]',
-    [Global.config.tabIndexAttributeName, ViewManager.currentTabIndex]);
-  var jqCurrentView = jqTargetElement.children(selector).first();
-  // 销毁当前视图
-  ViewManager.destroyView(jqCurrentView);
+  var jqViewParent = jQuery(ViewManager.appSelector);
+  var viewSelector = Utils.formatString('main[{0}="{1}"]',
+    [Global.config.tabIndexAttributeName,
+    ViewManager.currentTab.tabIndex]);
+  var jqView = jqViewParent.children(viewSelector);
 
-  var jqNextView = jqTargetElement.children(selector).first();
-  if (jqNextView.length > 0) {
-    // 恢复视图
-    ViewManager.resumeView(jqNextView);
+  if (jqView.length >= 1) {
+    // 销毁当前视图
+    ViewManager.destroyView(jqView[0]);
+  }
+
+  if (jqView.length >= 2) {
+    // 恢复上个视图
+    ViewManager.resumeView(jqView[1]);
   } else {
-    // 加载视图
+    // 加载新的视图
     ViewManager.doRenderView(url);
   }
 };
@@ -138,26 +148,54 @@ ViewManager.popView = function (url) {
  * @param {string} url URL字符串
  */
 ViewManager.doRenderView = function (url) {
-  var jqTargetElement = jQuery('.pure-app');
+  if (!Utils.isString(url)) {
+    throw new Error('argument#0 "url" required string');
+  }
 
-  var jqNewView = jQuery('<main class="pure-view-main"></main>');
+  var jqViewParent = jQuery(ViewManager.appSelector);
+  var jqNewView = jQuery('<main class="pure-view"></main>');
   jqNewView.attr(Global.config.viewStatusAttributeName, 'loading');
-  jqNewView.attr(Global.config.tabIndexAttributeName, ViewManager.currentTabIndex);
-  jqNewView.prependTo(jqTargetElement);
+  jqNewView.attr(Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex);
+  jqNewView.css('visibility', 'hidden');
+  jqNewView.prependTo(jqViewParent);
 
-  var viewLoader = new ViewLoader(jqNewView[0]);
+  // 创建视图加载器
+  var viewLoader = new ViewLoader(jqNewView[0], function (viewScope, view) {
+    var sequenceNumber = ViewManager.sequenceGenerator.nextValue();
+    var viewInfo = view.getViewInfo();
+    var viewName = viewInfo.getViewName();
+    var viewIndex = viewName + '_' + sequenceNumber;
+
+    // 修改视图作用域的名称以支持同时加载多个相同的视图
+    if (!Utils.isNullOrUndefined(viewScope)) {
+      ViewManager.setViewScope(viewIndex, viewScope);
+      ViewManager.removeViewScope(viewName);
+    }
+
+    // 记录视图索引
+    jqNewView.attr(Global.config.viewIndexAttributeName, viewIndex);
+    // 初始视图
+    ViewManager.initView(jqNewView[0]);
+  });
+
+  // 加载视图
   viewLoader.loadView(url);
-  // 初始视图
-  ViewManager.initView(jqNewView);
 };
 
 /**
  * @description 初始视图
- * @param {jQuery} jqView 
+ * @param {(Document|Element)} viewElement 
  */
-ViewManager.initView = function (jqView) {
-  jqView.attr(Global.config.viewStatusAttributeName, 'show');
+ViewManager.initView = function (viewElement) {
+  if (Utils.isNullOrUndefined(viewElement)) {
+    throw new Error('argument#0 "viewElement is null/undefined');
+  }
+
+  var jqView = jQuery(viewElement);
   var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
+  // 设置该视图成可见
+  jqView.attr(Global.config.viewStatusAttributeName, 'show');
+  jqView.css('visibility', 'visible');
 
   if (Utils.isNotEmptyString(viewIndex)) {
     var viewScope = ViewManager.getViewScope(viewIndex, false);
@@ -166,6 +204,7 @@ ViewManager.initView = function (jqView) {
       var onViewCreate = viewScope.onViewCreate;
 
       if (!Utils.isNullOrUndefined(onViewCreate)) {
+        // 视图创建后调用
         onViewCreate();
       }
     }
@@ -174,9 +213,14 @@ ViewManager.initView = function (jqView) {
 
 /**
  * @description 销毁视图
- * @param {jQuery} jqView 
+ * @param {(Document|Element)} viewElement 
  */
-ViewManager.destroyView = function (jqView) {
+ViewManager.destroyView = function (viewElement) {
+  if (Utils.isNullOrUndefined(viewElement)) {
+    throw new Error('argument#0 "viewElement is null/undefined');
+  }
+
+  var jqView = jQuery(viewElement);
   var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
 
   if (Utils.isNotEmptyString(viewIndex)) {
@@ -186,23 +230,29 @@ ViewManager.destroyView = function (jqView) {
       var onViewDestroy = viewScope.onViewDestroy;
 
       if (!Utils.isNullOrUndefined(onViewDestroy)) {
+        // 视图销毁前调用
         onViewDestroy();
       }
 
+      // 移除该视图对应的作用域
       ViewManager.removeViewScope(viewIndex);
     }
   }
 
+  // 移除该视图对应的 DOM 元素
   jqView.remove();
 };
 
 /**
  * @description 暂停视图
- * @param {jQuery} jqView 
+ * @param {(Document|Element)} viewElement 
  */
-ViewManager.pauseView = function (jqView) {
-  jqView.attr(Global.config.viewStatusAttributeName, 'hidden');
-  jqView.css('visibility', 'hidden');
+ViewManager.pauseView = function (viewElement) {
+  if (Utils.isNullOrUndefined(viewElement)) {
+    throw new Error('argument#0 "viewElement is null/undefined');
+  }
+
+  var jqView = jQuery(viewElement);
   var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
 
   if (Utils.isNotEmptyString(viewIndex)) {
@@ -212,20 +262,31 @@ ViewManager.pauseView = function (jqView) {
       var onViewPause = viewScope.onViewPause;
 
       if (!Utils.isNullOrUndefined(onViewPause)) {
+        // 视图暂停时调用
         onViewPause();
       }
     }
   }
+
+  // 设置该视图成不可见
+  jqView.attr(Global.config.viewStatusAttributeName, 'hidden');
+  jqView.css('visibility', 'hidden');
 };
 
 /**
  * @description 恢复视图
- * @param {jQuery} jqView 
+ * @param {(Document|Element)} targetElement 
  */
-ViewManager.resumeView = function (jqView) {
+ViewManager.resumeView = function (viewElement) {
+  if (Utils.isNullOrUndefined(viewElement)) {
+    throw new Error('argument#0 "viewElement is null/undefined');
+  }
+
+  var jqView = jQuery(viewElement);
+  var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
+  // 设置该视图成可见
   jqView.attr(Global.config.viewStatusAttributeName, 'show');
   jqView.css('visibility', 'visible');
-  var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
 
   if (Utils.isNotEmptyString(viewIndex)) {
     var viewScope = ViewManager.getViewScope(viewIndex, false);
@@ -234,6 +295,7 @@ ViewManager.resumeView = function (jqView) {
       var onViewResume = viewScope.onViewResume;
 
       if (!Utils.isNullOrUndefined(onViewResume)) {
+        // 视图恢复时调用
         onViewResume();
       }
     }

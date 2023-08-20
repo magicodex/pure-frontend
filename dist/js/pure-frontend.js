@@ -38,9 +38,11 @@ Global.config = {
 Global.messages = {
   // 未知错误
   unknownError: 'UnKnown error',
-  // 未找到视图名称/URL字符串/URL模式
+  // 未找到视图名称
   notFoundviewName: 'Not found viewName from response header',
+  // 未找到URL字符串
   notFoundFullUrl: 'Not found fullUrl from response header',
+  // 未找到URL模式
   notFoundUrlPattern: 'Not found urlPattern from response header'
 };
 
@@ -675,17 +677,18 @@ ViewResponse.prototype.getViewInfo = function () {
  * 视图加载器
  * @class
  * @param {(Document|Element)} targetElement 
+ * @param {function} [callbackFn]
  */
-function ViewLoader(targetElement) {
+function ViewLoader(targetElement, callbackFn) {
   if (Utils.isNullOrUndefined(targetElement)) {
     throw new Error('argument#0 "targetElement is null/undefined');
   }
 
   this._targetElement = targetElement;
+  this._callbackFn = callbackFn;
 }
 
-ViewLoader.labelForSuffixGenerator = new SequenceGenerator(100001);
-ViewLoader.viewIndexSuffixGenerator = new SequenceGenerator(100001);
+ViewLoader.sequenceGenerator = new SequenceGenerator(100001);
 ViewLoader.lastViewInfo = {};
 
 /**
@@ -701,7 +704,6 @@ ViewLoader.prototype.loadView = function (url) {
     url: url,
     type: 'POST'
   });
-
   var viewLoader = this;
 
   deferred.done(function (data, textStatus, jqXHR) {
@@ -747,33 +749,25 @@ ViewLoader.prototype.renderView = function (url, data, textStatus, jqXHR) {
   // 渲染视图
   jqElement.html(data);
   // 执行初始逻辑
-  this.initViewAfterRender(jqElement);
+  this.initViewAfterRender();
   // 修改浏览器URL
   BrowserUrl.setBrowserUrl(url);
 
-  var view = new View(jqElement[0], viewInfo);
+  var view = new View(this._targetElement, viewInfo);
   var viewScope = ViewManager.getViewScope(viewName);
   ViewLoader.lastViewInfo.viewScope = Utils.emptyObjectIfNullOrUndefined(viewScope);
   ViewLoader.lastViewInfo.view = view;
 
-  if (viewScope === undefined || viewScope === null) {
-    return;
-  } else {
-    var sequenceGenerator = ViewLoader.viewIndexSuffixGenerator;
-    var sequenceNumber = sequenceGenerator.nextValue();
-    var viewIndex = viewName + '_' + sequenceNumber;
+  if (!Utils.isNullOrUndefined(viewScope)) {
+    var mainFn = viewScope.main;
 
-    jqElement.attr(Global.config.viewIndexAttributeName, viewIndex);
-    // 修改视图作用域的名称以支持同时加载多个相同的视图
-    ViewManager.setViewScope(viewIndex, viewScope);
-    ViewManager.removeViewScope(viewName);
+    if (!Utils.isNullOrUndefined(mainFn)) {
+      // 调用主函数
+      mainFn(viewScope, view);
+    }
   }
 
-  var mainFn = viewScope.main;
-  if (mainFn != null) {
-    // 调用主函数
-    mainFn(viewScope, view);
-  }
+  this._callbackFn(viewScope, view);
 };
 
 /**
@@ -789,8 +783,7 @@ ViewLoader.prototype.initViewAfterRender = function () {
     var id = labelElement.getAttribute('for');
 
     if (Utils.isNotEmptyString(id)) {
-      var sequenceGenerator = ViewLoader.labelForSuffixGenerator;
-      var sequenceNumber = sequenceGenerator.nextValue();
+      var sequenceNumber = ViewLoader.sequenceGenerator.nextValue();
       var newId = id + '_' + sequenceNumber;
 
       var inputSelector = '#' + id;
@@ -814,7 +807,9 @@ function ViewManager() {
 }
 
 ViewManager.viewScopes = {};
-ViewManager.currentTabIndex = 'default';
+ViewManager.currentTab = { tabIndex: 'default' };
+ViewManager.sequenceGenerator = new SequenceGenerator(100001);
+ViewManager.appSelector = '.pure-app';
 
 /**
  * @description 返回指定的视图作用域
@@ -873,17 +868,17 @@ ViewManager.loadView = function (url) {
     throw new Error('argument#0 "url" required string');
   }
 
-  var jqTargetElement = jQuery('.pure-app');
-  var selector = Utils.formatString('main[{0}="{1}"]',
-    [Global.config.tabIndexAttributeName, ViewManager.currentTabIndex]);
-  var jqAllViews = jqTargetElement.children(selector);
+  var jqViewParent = jQuery(ViewManager.appSelector);
+  var viewSelector = Utils.formatString('main[{0}="{1}"]',
+    [Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex]);
+  var jqView = jqViewParent.children(viewSelector);
 
   // 销毁所有视图
-  jqAllViews.each(function (index, viewElement) {
-    ViewManager.destroyView(jQuery(viewElement));
+  jqView.each(function (index, viewElement) {
+    ViewManager.destroyView(viewElement);
   });
 
-  // 加载视图
+  // 加载新的视图
   ViewManager.doRenderView(url);
 };
 
@@ -896,12 +891,17 @@ ViewManager.pushView = function (url) {
     throw new Error('argument#0 "url" required string');
   }
 
-  var jqTargetElement = jQuery('.pure-app');
-  var jqCurrentView = jqTargetElement.children('main').first();
-  // 暂停当前视图
-  ViewManager.pauseView(jqCurrentView);
+  var jqViewParent = jQuery(ViewManager.appSelector);
+  var viewSelector = Utils.formatString('main[{0}="{1}"]:first',
+    [Global.config.viewStatusAttributeName, 'show']);
+  var jqCurrentView = jqViewParent.children(viewSelector);
 
-  // 加载视图
+  if (jqCurrentView.length > 0) {
+    // 暂停当前视图
+    ViewManager.pauseView(jqCurrentView[0]);
+  }
+
+  // 加载新的视图
   ViewManager.doRenderView(url);
 };
 
@@ -914,19 +914,22 @@ ViewManager.popView = function (url) {
     throw new Error('argument#0 "url" required string');
   }
 
-  var jqTargetElement = jQuery('.pure-app');
-  var selector = Utils.formatString('main[{0}="{1}"]',
-    [Global.config.tabIndexAttributeName, ViewManager.currentTabIndex]);
-  var jqCurrentView = jqTargetElement.children(selector).first();
-  // 销毁当前视图
-  ViewManager.destroyView(jqCurrentView);
+  var jqViewParent = jQuery(ViewManager.appSelector);
+  var viewSelector = Utils.formatString('main[{0}="{1}"]',
+    [Global.config.tabIndexAttributeName,
+    ViewManager.currentTab.tabIndex]);
+  var jqView = jqViewParent.children(viewSelector);
 
-  var jqNextView = jqTargetElement.children(selector).first();
-  if (jqNextView.length > 0) {
-    // 恢复视图
-    ViewManager.resumeView(jqNextView);
+  if (jqView.length >= 1) {
+    // 销毁当前视图
+    ViewManager.destroyView(jqView[0]);
+  }
+
+  if (jqView.length >= 2) {
+    // 恢复上个视图
+    ViewManager.resumeView(jqView[1]);
   } else {
-    // 加载视图
+    // 加载新的视图
     ViewManager.doRenderView(url);
   }
 };
@@ -936,26 +939,54 @@ ViewManager.popView = function (url) {
  * @param {string} url URL字符串
  */
 ViewManager.doRenderView = function (url) {
-  var jqTargetElement = jQuery('.pure-app');
+  if (!Utils.isString(url)) {
+    throw new Error('argument#0 "url" required string');
+  }
 
-  var jqNewView = jQuery('<main class="pure-view-main"></main>');
+  var jqViewParent = jQuery(ViewManager.appSelector);
+  var jqNewView = jQuery('<main class="pure-view"></main>');
   jqNewView.attr(Global.config.viewStatusAttributeName, 'loading');
-  jqNewView.attr(Global.config.tabIndexAttributeName, ViewManager.currentTabIndex);
-  jqNewView.prependTo(jqTargetElement);
+  jqNewView.attr(Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex);
+  jqNewView.css('visibility', 'hidden');
+  jqNewView.prependTo(jqViewParent);
 
-  var viewLoader = new ViewLoader(jqNewView[0]);
+  // 创建视图加载器
+  var viewLoader = new ViewLoader(jqNewView[0], function (viewScope, view) {
+    var sequenceNumber = ViewManager.sequenceGenerator.nextValue();
+    var viewInfo = view.getViewInfo();
+    var viewName = viewInfo.getViewName();
+    var viewIndex = viewName + '_' + sequenceNumber;
+
+    // 修改视图作用域的名称以支持同时加载多个相同的视图
+    if (!Utils.isNullOrUndefined(viewScope)) {
+      ViewManager.setViewScope(viewIndex, viewScope);
+      ViewManager.removeViewScope(viewName);
+    }
+
+    // 记录视图索引
+    jqNewView.attr(Global.config.viewIndexAttributeName, viewIndex);
+    // 初始视图
+    ViewManager.initView(jqNewView[0]);
+  });
+
+  // 加载视图
   viewLoader.loadView(url);
-  // 初始视图
-  ViewManager.initView(jqNewView);
 };
 
 /**
  * @description 初始视图
- * @param {jQuery} jqView 
+ * @param {(Document|Element)} viewElement 
  */
-ViewManager.initView = function (jqView) {
-  jqView.attr(Global.config.viewStatusAttributeName, 'show');
+ViewManager.initView = function (viewElement) {
+  if (Utils.isNullOrUndefined(viewElement)) {
+    throw new Error('argument#0 "viewElement is null/undefined');
+  }
+
+  var jqView = jQuery(viewElement);
   var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
+  // 设置该视图成可见
+  jqView.attr(Global.config.viewStatusAttributeName, 'show');
+  jqView.css('visibility', 'visible');
 
   if (Utils.isNotEmptyString(viewIndex)) {
     var viewScope = ViewManager.getViewScope(viewIndex, false);
@@ -964,6 +995,7 @@ ViewManager.initView = function (jqView) {
       var onViewCreate = viewScope.onViewCreate;
 
       if (!Utils.isNullOrUndefined(onViewCreate)) {
+        // 视图创建后调用
         onViewCreate();
       }
     }
@@ -972,9 +1004,14 @@ ViewManager.initView = function (jqView) {
 
 /**
  * @description 销毁视图
- * @param {jQuery} jqView 
+ * @param {(Document|Element)} viewElement 
  */
-ViewManager.destroyView = function (jqView) {
+ViewManager.destroyView = function (viewElement) {
+  if (Utils.isNullOrUndefined(viewElement)) {
+    throw new Error('argument#0 "viewElement is null/undefined');
+  }
+
+  var jqView = jQuery(viewElement);
   var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
 
   if (Utils.isNotEmptyString(viewIndex)) {
@@ -984,23 +1021,29 @@ ViewManager.destroyView = function (jqView) {
       var onViewDestroy = viewScope.onViewDestroy;
 
       if (!Utils.isNullOrUndefined(onViewDestroy)) {
+        // 视图销毁前调用
         onViewDestroy();
       }
 
+      // 移除该视图对应的作用域
       ViewManager.removeViewScope(viewIndex);
     }
   }
 
+  // 移除该视图对应的 DOM 元素
   jqView.remove();
 };
 
 /**
  * @description 暂停视图
- * @param {jQuery} jqView 
+ * @param {(Document|Element)} viewElement 
  */
-ViewManager.pauseView = function (jqView) {
-  jqView.attr(Global.config.viewStatusAttributeName, 'hidden');
-  jqView.css('visibility', 'hidden');
+ViewManager.pauseView = function (viewElement) {
+  if (Utils.isNullOrUndefined(viewElement)) {
+    throw new Error('argument#0 "viewElement is null/undefined');
+  }
+
+  var jqView = jQuery(viewElement);
   var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
 
   if (Utils.isNotEmptyString(viewIndex)) {
@@ -1010,20 +1053,31 @@ ViewManager.pauseView = function (jqView) {
       var onViewPause = viewScope.onViewPause;
 
       if (!Utils.isNullOrUndefined(onViewPause)) {
+        // 视图暂停时调用
         onViewPause();
       }
     }
   }
+
+  // 设置该视图成不可见
+  jqView.attr(Global.config.viewStatusAttributeName, 'hidden');
+  jqView.css('visibility', 'hidden');
 };
 
 /**
  * @description 恢复视图
- * @param {jQuery} jqView 
+ * @param {(Document|Element)} targetElement 
  */
-ViewManager.resumeView = function (jqView) {
+ViewManager.resumeView = function (viewElement) {
+  if (Utils.isNullOrUndefined(viewElement)) {
+    throw new Error('argument#0 "viewElement is null/undefined');
+  }
+
+  var jqView = jQuery(viewElement);
+  var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
+  // 设置该视图成可见
   jqView.attr(Global.config.viewStatusAttributeName, 'show');
   jqView.css('visibility', 'visible');
-  var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
 
   if (Utils.isNotEmptyString(viewIndex)) {
     var viewScope = ViewManager.getViewScope(viewIndex, false);
@@ -1032,6 +1086,7 @@ ViewManager.resumeView = function (jqView) {
       var onViewResume = viewScope.onViewResume;
 
       if (!Utils.isNullOrUndefined(onViewResume)) {
+        // 视图恢复时调用
         onViewResume();
       }
     }
@@ -1079,15 +1134,15 @@ ViewMask.prototype.hiddenMask = function () {
  * Ajax结果
  * @class
  * @param {jQuery.Deferred} deferred 
- * @param {(Document|Element)} [targetElement] 
+ * @param {(Document|Element)} [sourceElement] 
  */
-function AjaxResult(deferred, targetElement) {
+function AjaxResult(deferred, sourceElement) {
   if (Utils.isNullOrUndefined(deferred)) {
     throw new Error('argument#0 "deferred" is null/undefined');
   }
 
   this._deferred = deferred;
-  this._targetElement = targetElement;
+  this._sourceElement = sourceElement;
 }
 
 /**
@@ -1097,7 +1152,7 @@ function AjaxResult(deferred, targetElement) {
  * @returns {jQuery.Deferred}
  */
 AjaxResult.prototype.thenResult = function (doneFn, failFn) {
-  return this.doHandleDeferred(doneFn, failFn, false);
+  return this.doHandleResult(doneFn, failFn, false);
 };
 
 /**
@@ -1107,7 +1162,7 @@ AjaxResult.prototype.thenResult = function (doneFn, failFn) {
  * @returns {jQuery.Deferred}
  */
 AjaxResult.prototype.waitResult = function (doneFn, failFn) {
-  return this.doHandleDeferred(doneFn, failFn, true);
+  return this.doHandleResult(doneFn, failFn, true);
 };
 
 /**
@@ -1117,7 +1172,7 @@ AjaxResult.prototype.waitResult = function (doneFn, failFn) {
  * @param {boolean} showMask 
  * @returns {jQuery.Deferred}
  */
-AjaxResult.prototype.doHandleDeferred = function (doneFn, failFn, showMask) {
+AjaxResult.prototype.doHandleResult = function (doneFn, failFn, showMask) {
   if (!Utils.isFunction(doneFn)) {
     throw new Error('argument#1 "doneFn" required function');
   }
@@ -1125,14 +1180,14 @@ AjaxResult.prototype.doHandleDeferred = function (doneFn, failFn, showMask) {
   if (Utils.isNullOrUndefined(failFn)) {
     // 默认的错误处理
     failFn = function (jqXHR, textStatus, errorThrown) {
-      AjaxResult.handleAjaxError(this._targetElement, jqXHR, textStatus, errorThrown);
+      AjaxResult.handleAjaxError(this._sourceElement, jqXHR, textStatus, errorThrown);
     };
   }
 
   var deferred = this._deferred;
 
-  if (showMask && !Utils.isNullOrUndefined(this._targetElement)) {
-    var viewMask = new ViewMask(this._targetElement);
+  if (showMask && !Utils.isNullOrUndefined(this._sourceElement)) {
+    var viewMask = new ViewMask(this._sourceElement);
     // 显示遮罩层
     viewMask.showMask();
 
@@ -1162,12 +1217,12 @@ AjaxResult.prototype.doHandleDeferred = function (doneFn, failFn, showMask) {
 
 /**
  * @description 处理 AJAX 错误
- * @param {(Document|Element)} targetElement
+ * @param {(Document|Element)} sourceElement
  * @param {jQuery.jqXHR} jqXHR 
  * @param {string} textStatus 
  * @param {string} errorThrown 
  */
-AjaxResult.handleAjaxError = function (targetElement, jqXHR, textStatus, errorThrown) {
+AjaxResult.handleAjaxError = function (sourceElement, jqXHR, textStatus, errorThrown) {
   if (Utils.isNullOrUndefined(jqXHR)) {
     throw new Error('argument#0 "jqXHR" is null/undefined');
   }
@@ -1186,10 +1241,10 @@ AjaxResult.handleAjaxError = function (targetElement, jqXHR, textStatus, errorTh
 
 /**
  * @class
- * @param {(Document|Element)} [targetElement] 
+ * @param {(Document|Element)} [sourceElement] 
  */
-function AjaxCallService(targetElement) {
-  this._targetElement = targetElement;
+function AjaxCallService(sourceElement) {
+  this._sourceElement = sourceElement;
 }
 
 /**
@@ -1223,7 +1278,7 @@ AjaxCallService.prototype.callService = function (url, data, opts) {
 
   var newOpts = Utils.concatObjects([initOpts, opts]);
   var deferred = jQuery.ajax(newOpts);
-  var ajaxResult = new AjaxResult(deferred, this._targetElement);
+  var ajaxResult = new AjaxResult(deferred, this._sourceElement);
 
   return ajaxResult;
 };

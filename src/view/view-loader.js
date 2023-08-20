@@ -2,7 +2,6 @@
 
 import jQuery from 'jquery';
 import { Utils } from '../utils';
-import { Global } from '../global';
 import { ViewManager } from './view-manager';
 import { SequenceGenerator } from '../helper/sequence-generator';
 import { BrowserUrl } from '../helper/browser-url';
@@ -15,17 +14,18 @@ import { ViewResponse } from './view-response';
  * 视图加载器
  * @class
  * @param {(Document|Element)} targetElement 
+ * @param {function} [callbackFn]
  */
-function ViewLoader(targetElement) {
+function ViewLoader(targetElement, callbackFn) {
   if (Utils.isNullOrUndefined(targetElement)) {
     throw new Error('argument#0 "targetElement is null/undefined');
   }
 
   this._targetElement = targetElement;
+  this._callbackFn = callbackFn;
 }
 
-ViewLoader.labelForSuffixGenerator = new SequenceGenerator(100001);
-ViewLoader.viewIndexSuffixGenerator = new SequenceGenerator(100001);
+ViewLoader.sequenceGenerator = new SequenceGenerator(100001);
 ViewLoader.lastViewInfo = {};
 
 /**
@@ -41,7 +41,6 @@ ViewLoader.prototype.loadView = function (url) {
     url: url,
     type: 'POST'
   });
-
   var viewLoader = this;
 
   deferred.done(function (data, textStatus, jqXHR) {
@@ -96,24 +95,16 @@ ViewLoader.prototype.renderView = function (url, data, textStatus, jqXHR) {
   ViewLoader.lastViewInfo.viewScope = Utils.emptyObjectIfNullOrUndefined(viewScope);
   ViewLoader.lastViewInfo.view = view;
 
-  if (viewScope === undefined || viewScope === null) {
-    return;
-  } else {
-    var sequenceGenerator = ViewLoader.viewIndexSuffixGenerator;
-    var sequenceNumber = sequenceGenerator.nextValue();
-    var viewIndex = viewName + '_' + sequenceNumber;
+  if (!Utils.isNullOrUndefined(viewScope)) {
+    var mainFn = viewScope.main;
 
-    jqElement.attr(Global.config.viewIndexAttributeName, viewIndex);
-    // 修改视图作用域的名称以支持同时加载多个相同的视图
-    ViewManager.setViewScope(viewIndex, viewScope);
-    ViewManager.removeViewScope(viewName);
+    if (!Utils.isNullOrUndefined(mainFn)) {
+      // 调用主函数
+      mainFn(viewScope, view);
+    }
   }
 
-  var mainFn = viewScope.main;
-  if (mainFn != null) {
-    // 调用主函数
-    mainFn(viewScope, view);
-  }
+  this._callbackFn(viewScope, view);
 };
 
 /**
@@ -129,8 +120,7 @@ ViewLoader.prototype.initViewAfterRender = function () {
     var id = labelElement.getAttribute('for');
 
     if (Utils.isNotEmptyString(id)) {
-      var sequenceGenerator = ViewLoader.labelForSuffixGenerator;
-      var sequenceNumber = sequenceGenerator.nextValue();
+      var sequenceNumber = ViewLoader.sequenceGenerator.nextValue();
       var newId = id + '_' + sequenceNumber;
 
       var inputSelector = '#' + id;
