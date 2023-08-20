@@ -1,7 +1,7 @@
 "use strict";
 
 /*!
- * pure-frontend v1.2.0 (https://gitee.com/magicodex/pure-frontend)
+ * pure-frontend v1.2.1 (https://gitee.com/magicodex/pure-frontend)
  * Licensed under MIT (https://gitee.com/magicodex/pure-frontend/blob/master/LICENSE)
  */
 
@@ -323,7 +323,7 @@ UrlParser.parsePathParams = function (fullUrl, urlPattern) {
   }
 
   if (queryUrlIndex > 0) {
-    pathUrl = pageUrl.substring(0, queryUrlIndex);
+    pathUrl = fullUrl.substring(0, queryUrlIndex);
   } else {
     pathUrl = fullUrl;
   }
@@ -340,7 +340,7 @@ UrlParser.parsePathParams = function (fullUrl, urlPattern) {
       var endIndex = urlPatternPart.length - 1;
       var paramName = urlPatternPart.substring(1, endIndex);
       paramName = paramName.trim();
-      var paramValue = globalUtils.emptyStringIfNullOrUndefined(pathUrlParts[index]);
+      var paramValue = Utils.emptyStringIfNullOrUndefined(pathUrlParts[index]);
 
       urlParams[paramName] = paramValue;
     }
@@ -360,7 +360,7 @@ UrlParser.parseQueryParams = function (fullUrl) {
   }
 
   var queryUrlIndex = fullUrl.indexOf('?');
-  if (queryUrlIndex < 0 || (queryUrlIndex + 1) === pageUrl.length) {
+  if (queryUrlIndex < 0 || (queryUrlIndex + 1) === fullUrl.length) {
     return {}
   }
 
@@ -374,7 +374,7 @@ UrlParser.parseQueryParams = function (fullUrl) {
     var nameValues = queryUrlPart.split('=');
     var paramName = nameValues[0];
     paramName = paramName.trim();
-    var paramValue = globalUtils.emptyStringIfNullOrUndefined(nameValues[1]);
+    var paramValue = Utils.emptyStringIfNullOrUndefined(nameValues[1]);
     paramValue = paramValue.trim();
 
     urlParams[paramName] = decodeURIComponent(paramValue);
