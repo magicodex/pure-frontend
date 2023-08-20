@@ -767,7 +767,9 @@ ViewLoader.prototype.renderView = function (url, data, textStatus, jqXHR) {
     }
   }
 
-  this._callbackFn(viewScope, view);
+  if (!Utils.isNullOrUndefined(this._callbackFn)) {
+    this._callbackFn(viewScope, view);
+  }
 };
 
 /**
