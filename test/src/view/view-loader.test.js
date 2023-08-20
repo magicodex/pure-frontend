@@ -71,10 +71,10 @@ QUnit.module('ViewLoader', function () {
       assert.strictEqual(mainFnCalledFlag, true);
       assert.strictEqual(callbacnFnCalledFlag, true);
     } finally {
-      ViewManager.viewScopes = {};
       ViewLoader.lastViewInfo = {};
-      BrowserUrl.setLocationUrl = oldSetLocationUrl;
       ViewLoader.sequenceGenerator = new SequenceGenerator(100001);
+      ViewManager.viewScopes = {};
+      BrowserUrl.setLocationUrl = oldSetLocationUrl;
     }
   });
 
