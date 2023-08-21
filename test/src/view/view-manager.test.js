@@ -153,10 +153,10 @@ QUnit.module('ViewManager', function () {
     jqNewView.prependTo(jqTest);
 
     try {
-      var onViewLifecycleEndCalledFlag = false;
+      var onViewLifecycleStopCalledFlag = false;
       ViewManager.viewScopes['viewName1'] = {
-        onViewLifecycleEnd: function () {
-          onViewLifecycleEndCalledFlag = true;
+        onViewLifecycleStop: function () {
+          onViewLifecycleStopCalledFlag = true;
         }
       };
 
@@ -166,7 +166,7 @@ QUnit.module('ViewManager', function () {
 
       assert.strictEqual(jqTest.find('.pure-view').length, 0);
       assert.strictEqual(jqNewView.attr(Global.config.viewStatusAttributeName), 'destroy');
-      assert.strictEqual(onViewLifecycleEndCalledFlag, true);
+      assert.strictEqual(onViewLifecycleStopCalledFlag, true);
     } finally {
       ViewManager.viewScopes = {};
     }

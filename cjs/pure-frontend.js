@@ -1057,11 +1057,11 @@ ViewManager.stopViewLifecycle = function (viewElement) {
     var viewScope = ViewManager.getViewScope(viewIndex, false);
 
     if (!(viewStatus === ViewManager.VIEW_STATUS_LOADING) && !Utils.isNullOrUndefined(viewScope)) {
-      var onViewLifecycleEnd = viewScope.onViewLifecycleEnd;
+      var onViewLifecycleStop = viewScope.onViewLifecycleStop;
 
-      if (!Utils.isNullOrUndefined(onViewLifecycleEnd)) {
+      if (!Utils.isNullOrUndefined(onViewLifecycleStop)) {
         // 视图生命周期结束时调用
-        onViewLifecycleEnd();
+        onViewLifecycleStop();
       }
 
       // 移除该视图对应的作用域
