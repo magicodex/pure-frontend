@@ -1,6 +1,6 @@
 {
   "name": "pure-frontend",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "支持单页面应用的前端框架",
   "license": "MIT",
   "author": "mh.z",
@@ -27,7 +27,8 @@
   },
   "devDependencies": {
     "grunt": "^1.6.1",
-    "uglify-js": "^3.17.4"
+    "uglify-js": "^3.17.4",
+    "uglifycss": "^0.0.29"
   },
   "repository": {
     "type": "git",

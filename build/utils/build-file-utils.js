@@ -2,6 +2,7 @@
 
 var sourceCodeUtils = require('./source-code-utils');
 var minify = require('uglify-js').minify;
+var uglifycss = require('uglifycss');
 
 var buildFileUtils = {};
 module.exports = buildFileUtils;
@@ -58,8 +59,17 @@ buildFileUtils.buildFiles = function (grunt, config) {
   grunt.log.write('Success to write file "' + destFilePath + '".\n');
 
   if (minDestFilePath) {
-    var minifyResult = minify(destFileContent);
-    var minDestFileContent = minifyResult.code;
+    var minDestFileContent;
+
+    if (minDestFilePath.endsWith('.js')) {
+      var minifyResult = minify(destFileContent);
+      minDestFileContent = minifyResult.code;
+    } else if (minDestFilePath.endsWith('.css')) {
+      minDestFileContent = uglifycss.processString(destFileContent);
+    } else {
+      minDestFileContent = '';
+    }
+
     // 输出到目标文件
     grunt.file.write(minDestFilePath, minDestFileContent);
     grunt.log.write('Success to write file "' + minDestFilePath + '".\n');
