@@ -165,6 +165,7 @@ QUnit.module('ViewManager', function () {
       ViewManager.stopViewLifecycle(jqNewView[0]);
 
       assert.strictEqual(jqTest.find('.pure-view').length, 0);
+      assert.strictEqual(jqNewView.attr(Global.config.viewStatusAttributeName), 'destroy');
       assert.strictEqual(onViewLifecycleEndCalledFlag, true);
     } finally {
       ViewManager.viewScopes = {};

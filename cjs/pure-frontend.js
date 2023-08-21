@@ -871,7 +871,7 @@ ViewManager.loadView = function (url) {
 
   // 加载新的视图
   ViewManager.doRenderView(url, function () {
-    // 销毁所有视图
+    // 结束新视图之前所有视图的生命周期
     jqView.each(function (index, viewElement) {
       ViewManager.stopViewLifecycle(viewElement);
     });
@@ -895,7 +895,7 @@ ViewManager.pushView = function (url) {
   // 加载新的视图
   ViewManager.doRenderView(url, function () {
     if (jqCurrentView.length > 0) {
-      // 暂停当前视图
+      // 隐藏新视图之前的视图
       ViewManager.hiddenView(jqCurrentView[0]);
     }
   });
@@ -919,13 +919,13 @@ ViewManager.popView = function (url) {
   if (jqView.length >= 2) {
     // 恢复上个视图
     ViewManager.showView(jqView[1]);
-    // 销毁当前视图
+    // 结束新视图之前所有视图的生命周期
     ViewManager.stopViewLifecycle(jqView[0]);
   } else {
     // 加载新的视图
     ViewManager.doRenderView(url, function () {
       if (jqView.length >= 1) {
-        // 销毁当前视图
+        // 结束新视图之前所有视图的生命周期
         ViewManager.stopViewLifecycle(jqView[0]);
       }
     });
@@ -943,6 +943,15 @@ ViewManager.doRenderView = function (url, callbackFn) {
   }
 
   var jqViewParent = jQuery(ViewManager.appSelector);
+  var viewSelector = Utils.formatString('main[{0}="{1}"][{2}="{3}"]',
+    [Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex,
+    Global.config.viewStatusAttributeName, 'loading']);
+  var jqView = jqViewParent.find(viewSelector);
+
+  if (jqView.length > 0) {
+    return;
+  }
+
   var jqNewView = jQuery('<main class="pure-view"></main>');
   jqNewView.attr(Global.config.viewStatusAttributeName, 'loading');
   jqNewView.attr(Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex);
@@ -968,7 +977,7 @@ ViewManager.doRenderView = function (url, callbackFn) {
       callbackFn();
     }
 
-    // 初始视图
+    // 开启视图生命周期
     ViewManager.startViewLifecycle(jqNewView[0]);
   });
 
@@ -977,7 +986,7 @@ ViewManager.doRenderView = function (url, callbackFn) {
 };
 
 /**
- * @description 初始视图
+ * @description 开启视图生命周期
  * @param {(Document|Element)} viewElement 
  */
 ViewManager.startViewLifecycle = function (viewElement) {
@@ -987,9 +996,12 @@ ViewManager.startViewLifecycle = function (viewElement) {
 
   var jqView = jQuery(viewElement);
   var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
-  // 设置该视图成可见
-  jqView.attr(Global.config.viewStatusAttributeName, 'show');
-  jqView.css('visibility', 'visible');
+  var tabIndex = jqView.attr(Global.config.tabIndexAttributeName);
+  var viewStatus = jqView.attr(Global.config.viewStatusAttributeName);
+
+  if (viewStatus === 'destroy') {
+    return;
+  }
 
   if (Utils.isNotEmptyString(viewIndex)) {
     var viewScope = ViewManager.getViewScope(viewIndex, false);
@@ -998,15 +1010,20 @@ ViewManager.startViewLifecycle = function (viewElement) {
       var onViewLifecycleStart = viewScope.onViewLifecycleStart;
 
       if (!Utils.isNullOrUndefined(onViewLifecycleStart)) {
-        // 视图创建后调用
+        // 视图生命周期开启时调用
         onViewLifecycleStart();
       }
     }
   }
+
+  if (tabIndex === ViewManager.currentTab.tabIndex) {
+    // 显示视图
+    ViewManager.showView(viewElement);
+  }
 };
 
 /**
- * @description 销毁视图
+ * @description 结束视图生命周期
  * @param {(Document|Element)} viewElement 
  */
 ViewManager.stopViewLifecycle = function (viewElement) {
@@ -1014,8 +1031,16 @@ ViewManager.stopViewLifecycle = function (viewElement) {
     throw new Error('argument#0 "viewElement is null/undefined');
   }
 
+  // 隐藏视图
+  ViewManager.hiddenView(viewElement);
+
   var jqView = jQuery(viewElement);
   var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
+  var viewStatus = jqView.attr(Global.config.viewStatusAttributeName);
+
+  if (!(viewStatus === 'hidden')) {
+    return;
+  }
 
   if (Utils.isNotEmptyString(viewIndex)) {
     var viewScope = ViewManager.getViewScope(viewIndex, false);
@@ -1023,8 +1048,8 @@ ViewManager.stopViewLifecycle = function (viewElement) {
     if (!Utils.isNullOrUndefined(viewScope)) {
       var onViewLifecycleEnd = viewScope.onViewLifecycleEnd;
 
-      if (!Utils.isNullOrUndefined(onViewLifecycleEnd)) {
-        // 视图销毁前调用
+      if (!(viewStatus === 'loading') && !Utils.isNullOrUndefined(onViewLifecycleEnd)) {
+        // 视图生命周期结束时调用
         onViewLifecycleEnd();
       }
 
@@ -1033,12 +1058,13 @@ ViewManager.stopViewLifecycle = function (viewElement) {
     }
   }
 
+  jqView.attr(Global.config.viewStatusAttributeName, 'destroy');
   // 移除该视图对应的 DOM 元素
   jqView.remove();
 };
 
 /**
- * @description 恢复视图
+ * @description 显示视图
  * @param {(Document|Element)} targetElement 
  */
 ViewManager.showView = function (viewElement) {
@@ -1048,6 +1074,12 @@ ViewManager.showView = function (viewElement) {
 
   var jqView = jQuery(viewElement);
   var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
+  var viewStatus = jqView.attr(Global.config.viewStatusAttributeName);
+
+  if (viewStatus === 'show') {
+    return;
+  }
+
   // 设置该视图成可见
   jqView.attr(Global.config.viewStatusAttributeName, 'show');
   jqView.css('visibility', 'visible');
@@ -1059,7 +1091,7 @@ ViewManager.showView = function (viewElement) {
       var onViewShow = viewScope.onViewShow;
 
       if (!Utils.isNullOrUndefined(onViewShow)) {
-        // 视图恢复时调用
+        // 视图显示时调用
         onViewShow();
       }
     }
@@ -1067,7 +1099,7 @@ ViewManager.showView = function (viewElement) {
 };
 
 /**
- * @description 暂停视图
+ * @description 隐藏视图
  * @param {(Document|Element)} viewElement 
  */
 ViewManager.hiddenView = function (viewElement) {
@@ -1077,6 +1109,11 @@ ViewManager.hiddenView = function (viewElement) {
 
   var jqView = jQuery(viewElement);
   var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
+  var viewStatus = jqView.attr(Global.config.viewStatusAttributeName);
+
+  if (viewStatus !== 'show') {
+    return;
+  }
 
   if (Utils.isNotEmptyString(viewIndex)) {
     var viewScope = ViewManager.getViewScope(viewIndex, false);
@@ -1085,7 +1122,7 @@ ViewManager.hiddenView = function (viewElement) {
       var onViewHidden = viewScope.onViewHidden;
 
       if (!Utils.isNullOrUndefined(onViewHidden)) {
-        // 视图暂停时调用
+        // 视图隐藏时调用
         onViewHidden();
       }
     }
