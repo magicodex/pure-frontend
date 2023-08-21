@@ -115,7 +115,7 @@ QUnit.module('ViewManager', function () {
     }
   });
 
-  QUnit.test('initView', function (assert) {
+  QUnit.test('startViewLifecycle', function (assert) {
     var jqTest = $('#qunit-fixture');
     var jqNewView = jQuery('<main class="pure-view"></main>');
     jqNewView.attr(Global.config.viewIndexAttributeName, 'viewName1');
@@ -125,17 +125,17 @@ QUnit.module('ViewManager', function () {
     jqNewView.prependTo(jqTest);
 
     try {
-      var onViewCreateCalledFlag = false;
+      var onViewLifecycleStartCalledFlag = false;
       ViewManager.viewScopes['viewName1'] = {
-        onViewCreate: function () {
-          onViewCreateCalledFlag = true;
+        onViewLifecycleStart: function () {
+          onViewLifecycleStartCalledFlag = true;
         }
       };
 
       // 调用方法
-      ViewManager.initView(jqNewView[0]);
+      ViewManager.startViewLifecycle(jqNewView[0]);
 
-      assert.strictEqual(onViewCreateCalledFlag, true);
+      assert.strictEqual(onViewLifecycleStartCalledFlag, true);
       assert.strictEqual(jqNewView.attr(Global.config.viewStatusAttributeName), 'show');
       assert.strictEqual(jqNewView.css('visibility'), 'visible');
     } finally {
@@ -143,7 +143,7 @@ QUnit.module('ViewManager', function () {
     }
   });
 
-  QUnit.test('pauseView', function (assert) {
+  QUnit.test('stopViewLifecycle', function (assert) {
     var jqTest = $('#qunit-fixture');
     var jqNewView = jQuery('<main class="pure-view"></main>');
     jqNewView.attr(Global.config.viewIndexAttributeName, 'viewName1');
@@ -153,25 +153,25 @@ QUnit.module('ViewManager', function () {
     jqNewView.prependTo(jqTest);
 
     try {
-      var onViewPauseCalledFlag = false;
+      var onViewLifecycleEndCalledFlag = false;
       ViewManager.viewScopes['viewName1'] = {
-        onViewPause: function () {
-          onViewPauseCalledFlag = true;
+        onViewLifecycleEnd: function () {
+          onViewLifecycleEndCalledFlag = true;
         }
       };
 
+      assert.strictEqual(jqTest.find('.pure-view').length, 1);
       // 调用方法
-      ViewManager.pauseView(jqNewView[0]);
+      ViewManager.stopViewLifecycle(jqNewView[0]);
 
-      assert.strictEqual(onViewPauseCalledFlag, true);
-      assert.strictEqual(jqNewView.attr(Global.config.viewStatusAttributeName), 'hidden');
-      assert.strictEqual(jqNewView.css('visibility'), 'hidden');
+      assert.strictEqual(jqTest.find('.pure-view').length, 0);
+      assert.strictEqual(onViewLifecycleEndCalledFlag, true);
     } finally {
       ViewManager.viewScopes = {};
     }
   });
-
-  QUnit.test('resumeView', function (assert) {
+  
+  QUnit.test('showView', function (assert) {
     var jqTest = $('#qunit-fixture');
     var jqNewView = jQuery('<main class="pure-view"></main>');
     jqNewView.attr(Global.config.viewIndexAttributeName, 'viewName1');
@@ -181,17 +181,17 @@ QUnit.module('ViewManager', function () {
     jqNewView.prependTo(jqTest);
 
     try {
-      var onViewResumeCalledFlag = false;
+      var onViewShowCalledFlag = false;
       ViewManager.viewScopes['viewName1'] = {
-        onViewResume: function () {
-          onViewResumeCalledFlag = true;
+        onViewShow: function () {
+          onViewShowCalledFlag = true;
         }
       };
 
       // 调用方法
-      ViewManager.resumeView(jqNewView[0]);
+      ViewManager.showView(jqNewView[0]);
 
-      assert.strictEqual(onViewResumeCalledFlag, true);
+      assert.strictEqual(onViewShowCalledFlag, true);
       assert.strictEqual(jqNewView.attr(Global.config.viewStatusAttributeName), 'show');
       assert.strictEqual(jqNewView.css('visibility'), 'visible');
     } finally {
@@ -199,7 +199,7 @@ QUnit.module('ViewManager', function () {
     }
   });
 
-  QUnit.test('destroyView', function (assert) {
+  QUnit.test('hiddenView', function (assert) {
     var jqTest = $('#qunit-fixture');
     var jqNewView = jQuery('<main class="pure-view"></main>');
     jqNewView.attr(Global.config.viewIndexAttributeName, 'viewName1');
@@ -209,19 +209,19 @@ QUnit.module('ViewManager', function () {
     jqNewView.prependTo(jqTest);
 
     try {
-      var onViewDestroyCalledFlag = false;
+      var onViewHiddenCalledFlag = false;
       ViewManager.viewScopes['viewName1'] = {
-        onViewDestroy: function () {
-          onViewDestroyCalledFlag = true;
+        onViewHidden: function () {
+          onViewHiddenCalledFlag = true;
         }
       };
 
-      assert.strictEqual(jqTest.find('.pure-view').length, 1);
       // 调用方法
-      ViewManager.destroyView(jqNewView[0]);
+      ViewManager.hiddenView(jqNewView[0]);
 
-      assert.strictEqual(jqTest.find('.pure-view').length, 0);
-      assert.strictEqual(onViewDestroyCalledFlag, true);
+      assert.strictEqual(onViewHiddenCalledFlag, true);
+      assert.strictEqual(jqNewView.attr(Global.config.viewStatusAttributeName), 'hidden');
+      assert.strictEqual(jqNewView.css('visibility'), 'hidden');
     } finally {
       ViewManager.viewScopes = {};
     }

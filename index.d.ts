@@ -309,17 +309,17 @@ export namespace fn {
         const viewScopes: {
         };
 
-        function destroyView(viewElement: any): void;
+        function stopViewLifecycle(viewElement: any): void;
 
-        function doRenderView(url: any): void;
+        function doRenderView(url: any, callbackFn: any): void;
 
         function getViewScope(viewName: any, allowCreate: boolean): any;
 
-        function initView(viewElement: any): void;
+        function startViewLifecycle(viewElement: any): void;
 
         function loadView(url: any): void;
 
-        function pauseView(viewElement: any): void;
+        function hiddenView(viewElement: any): void;
 
         function popView(url: any): void;
 
@@ -327,7 +327,7 @@ export namespace fn {
 
         function removeViewScope(viewName: any): void;
 
-        function resumeView(viewElement: any): void;
+        function showView(viewElement: any): void;
 
         function setViewScope(viewName: any, viewScope: any): void;
 

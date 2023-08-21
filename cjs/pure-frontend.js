@@ -869,13 +869,13 @@ ViewManager.loadView = function (url) {
     [Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex]);
   var jqView = jqViewParent.children(viewSelector);
 
-  // 销毁所有视图
-  jqView.each(function (index, viewElement) {
-    ViewManager.destroyView(viewElement);
-  });
-
   // 加载新的视图
-  ViewManager.doRenderView(url);
+  ViewManager.doRenderView(url, function () {
+    // 销毁所有视图
+    jqView.each(function (index, viewElement) {
+      ViewManager.stopViewLifecycle(viewElement);
+    });
+  });
 };
 
 /**
@@ -892,13 +892,13 @@ ViewManager.pushView = function (url) {
     [Global.config.viewStatusAttributeName, 'show']);
   var jqCurrentView = jqViewParent.children(viewSelector);
 
-  if (jqCurrentView.length > 0) {
-    // 暂停当前视图
-    ViewManager.pauseView(jqCurrentView[0]);
-  }
-
   // 加载新的视图
-  ViewManager.doRenderView(url);
+  ViewManager.doRenderView(url, function () {
+    if (jqCurrentView.length > 0) {
+      // 暂停当前视图
+      ViewManager.hiddenView(jqCurrentView[0]);
+    }
+  });
 };
 
 /**
@@ -916,25 +916,28 @@ ViewManager.popView = function (url) {
     ViewManager.currentTab.tabIndex]);
   var jqView = jqViewParent.children(viewSelector);
 
-  if (jqView.length >= 1) {
-    // 销毁当前视图
-    ViewManager.destroyView(jqView[0]);
-  }
-
   if (jqView.length >= 2) {
     // 恢复上个视图
-    ViewManager.resumeView(jqView[1]);
+    ViewManager.showView(jqView[1]);
+    // 销毁当前视图
+    ViewManager.stopViewLifecycle(jqView[0]);
   } else {
     // 加载新的视图
-    ViewManager.doRenderView(url);
+    ViewManager.doRenderView(url, function () {
+      if (jqView.length >= 1) {
+        // 销毁当前视图
+        ViewManager.stopViewLifecycle(jqView[0]);
+      }
+    });
   }
 };
 
 /**
  * @description 加载视图
  * @param {string} url URL字符串
+ * @param {function} [callbackFn]
  */
-ViewManager.doRenderView = function (url) {
+ViewManager.doRenderView = function (url, callbackFn) {
   if (!Utils.isString(url)) {
     throw new Error('argument#0 "url" required string');
   }
@@ -952,6 +955,8 @@ ViewManager.doRenderView = function (url) {
     var viewInfo = view.getViewInfo();
     var viewName = viewInfo.getViewName();
     var viewIndex = viewName + '_' + sequenceNumber;
+    // 记录视图索引
+    jqNewView.attr(Global.config.viewIndexAttributeName, viewIndex);
 
     // 修改视图作用域的名称以支持同时加载多个相同的视图
     if (!Utils.isNullOrUndefined(viewScope)) {
@@ -959,10 +964,12 @@ ViewManager.doRenderView = function (url) {
       ViewManager.removeViewScope(viewName);
     }
 
-    // 记录视图索引
-    jqNewView.attr(Global.config.viewIndexAttributeName, viewIndex);
+    if (!Utils.isNullOrUndefined(callbackFn)) {
+      callbackFn();
+    }
+
     // 初始视图
-    ViewManager.initView(jqNewView[0]);
+    ViewManager.startViewLifecycle(jqNewView[0]);
   });
 
   // 加载视图
@@ -973,7 +980,7 @@ ViewManager.doRenderView = function (url) {
  * @description 初始视图
  * @param {(Document|Element)} viewElement 
  */
-ViewManager.initView = function (viewElement) {
+ViewManager.startViewLifecycle = function (viewElement) {
   if (Utils.isNullOrUndefined(viewElement)) {
     throw new Error('argument#0 "viewElement is null/undefined');
   }
@@ -988,11 +995,11 @@ ViewManager.initView = function (viewElement) {
     var viewScope = ViewManager.getViewScope(viewIndex, false);
 
     if (!Utils.isNullOrUndefined(viewScope)) {
-      var onViewCreate = viewScope.onViewCreate;
+      var onViewLifecycleStart = viewScope.onViewLifecycleStart;
 
-      if (!Utils.isNullOrUndefined(onViewCreate)) {
+      if (!Utils.isNullOrUndefined(onViewLifecycleStart)) {
         // 视图创建后调用
-        onViewCreate();
+        onViewLifecycleStart();
       }
     }
   }
@@ -1002,7 +1009,7 @@ ViewManager.initView = function (viewElement) {
  * @description 销毁视图
  * @param {(Document|Element)} viewElement 
  */
-ViewManager.destroyView = function (viewElement) {
+ViewManager.stopViewLifecycle = function (viewElement) {
   if (Utils.isNullOrUndefined(viewElement)) {
     throw new Error('argument#0 "viewElement is null/undefined');
   }
@@ -1014,11 +1021,11 @@ ViewManager.destroyView = function (viewElement) {
     var viewScope = ViewManager.getViewScope(viewIndex, false);
 
     if (!Utils.isNullOrUndefined(viewScope)) {
-      var onViewDestroy = viewScope.onViewDestroy;
+      var onViewLifecycleEnd = viewScope.onViewLifecycleEnd;
 
-      if (!Utils.isNullOrUndefined(onViewDestroy)) {
+      if (!Utils.isNullOrUndefined(onViewLifecycleEnd)) {
         // 视图销毁前调用
-        onViewDestroy();
+        onViewLifecycleEnd();
       }
 
       // 移除该视图对应的作用域
@@ -1031,40 +1038,10 @@ ViewManager.destroyView = function (viewElement) {
 };
 
 /**
- * @description 暂停视图
- * @param {(Document|Element)} viewElement 
- */
-ViewManager.pauseView = function (viewElement) {
-  if (Utils.isNullOrUndefined(viewElement)) {
-    throw new Error('argument#0 "viewElement is null/undefined');
-  }
-
-  var jqView = jQuery(viewElement);
-  var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
-
-  if (Utils.isNotEmptyString(viewIndex)) {
-    var viewScope = ViewManager.getViewScope(viewIndex, false);
-
-    if (!Utils.isNullOrUndefined(viewScope)) {
-      var onViewPause = viewScope.onViewPause;
-
-      if (!Utils.isNullOrUndefined(onViewPause)) {
-        // 视图暂停时调用
-        onViewPause();
-      }
-    }
-  }
-
-  // 设置该视图成不可见
-  jqView.attr(Global.config.viewStatusAttributeName, 'hidden');
-  jqView.css('visibility', 'hidden');
-};
-
-/**
  * @description 恢复视图
  * @param {(Document|Element)} targetElement 
  */
-ViewManager.resumeView = function (viewElement) {
+ViewManager.showView = function (viewElement) {
   if (Utils.isNullOrUndefined(viewElement)) {
     throw new Error('argument#0 "viewElement is null/undefined');
   }
@@ -1079,14 +1056,44 @@ ViewManager.resumeView = function (viewElement) {
     var viewScope = ViewManager.getViewScope(viewIndex, false);
 
     if (!Utils.isNullOrUndefined(viewScope)) {
-      var onViewResume = viewScope.onViewResume;
+      var onViewShow = viewScope.onViewShow;
 
-      if (!Utils.isNullOrUndefined(onViewResume)) {
+      if (!Utils.isNullOrUndefined(onViewShow)) {
         // 视图恢复时调用
-        onViewResume();
+        onViewShow();
       }
     }
   }
+};
+
+/**
+ * @description 暂停视图
+ * @param {(Document|Element)} viewElement 
+ */
+ViewManager.hiddenView = function (viewElement) {
+  if (Utils.isNullOrUndefined(viewElement)) {
+    throw new Error('argument#0 "viewElement is null/undefined');
+  }
+
+  var jqView = jQuery(viewElement);
+  var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
+
+  if (Utils.isNotEmptyString(viewIndex)) {
+    var viewScope = ViewManager.getViewScope(viewIndex, false);
+
+    if (!Utils.isNullOrUndefined(viewScope)) {
+      var onViewHidden = viewScope.onViewHidden;
+
+      if (!Utils.isNullOrUndefined(onViewHidden)) {
+        // 视图暂停时调用
+        onViewHidden();
+      }
+    }
+  }
+
+  // 设置该视图成不可见
+  jqView.attr(Global.config.viewStatusAttributeName, 'hidden');
+  jqView.css('visibility', 'hidden');
 };
 
 
