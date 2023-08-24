@@ -26,13 +26,13 @@ Global.config = {
 // 全局多语言信息
 Global.messages = {
   // 未知错误
-  unknownError: 'UnKnown error',
+  unknownError: 'UnKnown error!',
   // 未找到视图名称
-  notFoundviewName: 'Not found viewName from response header',
+  notFoundviewName: 'Not found viewName from response header!',
   // 未找到URL字符串
-  notFoundFullUrl: 'Not found fullUrl from response header',
+  notFoundFullUrl: 'Not found fullUrl from response header!',
   // 未找到URL模式
-  notFoundUrlPattern: 'Not found urlPattern from response header'
+  notFoundUrlPattern: 'Not found urlPattern from response header!'
 };
 
 /* SOURCE-CODE-END */
