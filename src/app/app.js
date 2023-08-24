@@ -16,20 +16,20 @@ function App() {
 /**
  * @description 初始视图作用域
  * @param {string} viewName 
- * @param {function} callbackFn 
+ * @param {function} registerFn 
  */
-App.viewScope = function (viewName, callbackFn) {
+App.viewScope = function (viewName, registerFn) {
   if (!Utils.isString(viewName)) {
     throw new Error('argument#0 "viewName" required string');
   }
 
-  if (!Utils.isFunction(callbackFn)) {
-    throw new Error('argument#1 "callbackFn" required function');
+  if (!Utils.isFunction(registerFn)) {
+    throw new Error('argument#1 "registerFn" required function');
   }
 
   var viewScope = ViewManager.getViewScope(viewName);
   // 调用回调函数初始作用域
-  callbackFn(viewScope);
+  registerFn(viewScope);
 };
 
 /**

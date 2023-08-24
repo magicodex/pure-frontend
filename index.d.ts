@@ -4,7 +4,7 @@ import { Model } from "ui-data";
 import JQuery from 'jquery';
 
 type mainFn = (scope: any, view: fn.View) => void;
-type viewScopeCallbackFn = (scope: any) => void;
+type registerFn = (scope: any) => void;
 
 export const config: {
     singlePageBaseUrl: string;
@@ -67,9 +67,9 @@ export namespace app {
     /**
      * @description 初始视图作用域
      * @param {string} viewName 
-     * @param {function} callbackFn 
+     * @param {function} registerFn 
      */
-    function viewScope(viewName: any, callbackFn: viewScopeCallbackFn): void;
+    function viewScope(viewName: any, registerFn: registerFn): void;
 
 }
 
@@ -213,7 +213,7 @@ export namespace fn {
 
         function viewMain(viewName: any, mainFn: mainFn): void;
 
-        function viewScope(viewName: any, callbackFn: viewScopeCallbackFn): void;
+        function viewScope(viewName: any, registerFn: registerFn): void;
 
     }
 
@@ -311,7 +311,7 @@ export namespace fn {
 
         function stopViewLifecycle(viewElement: any): void;
 
-        function doRenderView(url: any, callbackFn: any): void;
+        function doRenderView(url: any, afterRenderFn: any): void;
 
         function getViewScope(viewName: any, allowCreate: boolean): any;
 

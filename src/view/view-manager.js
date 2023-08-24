@@ -153,9 +153,9 @@ ViewManager.popView = function (url) {
 /**
  * @description 加载视图
  * @param {string} url URL字符串
- * @param {function} [callbackFn]
+ * @param {function} [afterRenderFn]
  */
-ViewManager.doRenderView = function (url, callbackFn) {
+ViewManager.doRenderView = function (url, afterRenderFn) {
   if (!Utils.isString(url)) {
     throw new Error('argument#0 "url" required string');
   }
@@ -177,7 +177,12 @@ ViewManager.doRenderView = function (url, callbackFn) {
   jqNewView.prependTo(jqViewParent);
 
   // 创建视图加载器
-  var viewLoader = new ViewLoader(jqNewView[0], function (viewScope, view) {
+  var viewLoader = new ViewLoader(jqNewView[0], function (success, viewScope, view) {
+    if (!(success === true)) {
+      ViewManager.stopViewLifecycle(jqNewView);
+      return;
+    }
+
     var sequenceNumber = ViewManager.sequenceGenerator.nextValue();
     var viewInfo = view.getViewInfo();
     var viewName = viewInfo.getViewName();
@@ -191,8 +196,8 @@ ViewManager.doRenderView = function (url, callbackFn) {
       ViewManager.removeViewScope(viewName);
     }
 
-    if (!Utils.isNullOrUndefined(callbackFn)) {
-      callbackFn();
+    if (!Utils.isNullOrUndefined(afterRenderFn)) {
+      afterRenderFn();
     }
 
     // 开启视图生命周期

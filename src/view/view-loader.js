@@ -7,6 +7,7 @@ import { SequenceGenerator } from '../helper/sequence-generator';
 import { BrowserUrl } from '../helper/browser-url';
 import { View } from './view';
 import { ViewResponse } from './view-response';
+import { AjaxResult } from '../ajax/ajax-result';
 
 /* SOURCE-CODE-START */
 
@@ -39,18 +40,30 @@ ViewLoader.prototype.loadView = function (url) {
 
   var deferred = jQuery.ajax({
     url: url,
-    type: 'POST'
+    type: 'POST',
+    error: function (jqXHR, textStatus, errorThrown) {
+      // 覆盖全局的错误处理
+    }
   });
   var viewLoader = this;
 
   deferred.done(function (data, textStatus, jqXHR) {
-    // 判断是否需要渲染视图
-    if (!viewLoader.preRenderView(url, data, textStatus, jqXHR)) {
-      return;
-    }
+    try {
+      // 判断是否需要渲染视图
+      if (!viewLoader.preRenderView(url, data, textStatus, jqXHR)) {
+        viewLoader._callbackFn(false);
+        return;
+      }
 
-    // 渲染视图
-    viewLoader.renderView(url, data, textStatus, jqXHR);
+      // 渲染视图
+      viewLoader.renderView(url, data, textStatus, jqXHR);
+    } catch (error) {
+      console.error(error.message);
+      viewLoader._callbackFn(false);
+    }
+  }).fail(function (jqXHR, textStatus, errorThrown) {
+    AjaxResult.handleAjaxError(null, jqXHR, textStatus, errorThrown);
+    viewLoader._callbackFn(false);
   });
 };
 
@@ -105,7 +118,7 @@ ViewLoader.prototype.renderView = function (url, data, textStatus, jqXHR) {
   }
 
   if (!Utils.isNullOrUndefined(this._callbackFn)) {
-    this._callbackFn(viewScope, view);
+    this._callbackFn(true, viewScope, view);
   }
 };
 

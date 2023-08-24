@@ -696,18 +696,30 @@ ViewLoader.prototype.loadView = function (url) {
 
   var deferred = jQuery.ajax({
     url: url,
-    type: 'POST'
+    type: 'POST',
+    error: function (jqXHR, textStatus, errorThrown) {
+      // 覆盖全局的错误处理
+    }
   });
   var viewLoader = this;
 
   deferred.done(function (data, textStatus, jqXHR) {
-    // 判断是否需要渲染视图
-    if (!viewLoader.preRenderView(url, data, textStatus, jqXHR)) {
-      return;
-    }
+    try {
+      // 判断是否需要渲染视图
+      if (!viewLoader.preRenderView(url, data, textStatus, jqXHR)) {
+        viewLoader._callbackFn(false);
+        return;
+      }
 
-    // 渲染视图
-    viewLoader.renderView(url, data, textStatus, jqXHR);
+      // 渲染视图
+      viewLoader.renderView(url, data, textStatus, jqXHR);
+    } catch (error) {
+      console.error(error.message);
+      viewLoader._callbackFn(false);
+    }
+  }).fail(function (jqXHR, textStatus, errorThrown) {
+    AjaxResult.handleAjaxError(null, jqXHR, textStatus, errorThrown);
+    viewLoader._callbackFn(false);
   });
 };
 
@@ -762,7 +774,7 @@ ViewLoader.prototype.renderView = function (url, data, textStatus, jqXHR) {
   }
 
   if (!Utils.isNullOrUndefined(this._callbackFn)) {
-    this._callbackFn(viewScope, view);
+    this._callbackFn(true, viewScope, view);
   }
 };
 
@@ -940,9 +952,9 @@ ViewManager.popView = function (url) {
 /**
  * @description 加载视图
  * @param {string} url URL字符串
- * @param {function} [callbackFn]
+ * @param {function} [afterRenderFn]
  */
-ViewManager.doRenderView = function (url, callbackFn) {
+ViewManager.doRenderView = function (url, afterRenderFn) {
   if (!Utils.isString(url)) {
     throw new Error('argument#0 "url" required string');
   }
@@ -964,7 +976,12 @@ ViewManager.doRenderView = function (url, callbackFn) {
   jqNewView.prependTo(jqViewParent);
 
   // 创建视图加载器
-  var viewLoader = new ViewLoader(jqNewView[0], function (viewScope, view) {
+  var viewLoader = new ViewLoader(jqNewView[0], function (success, viewScope, view) {
+    if (!(success === true)) {
+      ViewManager.stopViewLifecycle(jqNewView);
+      return;
+    }
+
     var sequenceNumber = ViewManager.sequenceGenerator.nextValue();
     var viewInfo = view.getViewInfo();
     var viewName = viewInfo.getViewName();
@@ -978,8 +995,8 @@ ViewManager.doRenderView = function (url, callbackFn) {
       ViewManager.removeViewScope(viewName);
     }
 
-    if (!Utils.isNullOrUndefined(callbackFn)) {
-      callbackFn();
+    if (!Utils.isNullOrUndefined(afterRenderFn)) {
+      afterRenderFn();
     }
 
     // 开启视图生命周期
@@ -1426,20 +1443,20 @@ function App() {
 /**
  * @description 初始视图作用域
  * @param {string} viewName 
- * @param {function} callbackFn 
+ * @param {function} registerFn 
  */
-App.viewScope = function (viewName, callbackFn) {
+App.viewScope = function (viewName, registerFn) {
   if (!Utils.isString(viewName)) {
     throw new Error('argument#0 "viewName" required string');
   }
 
-  if (!Utils.isFunction(callbackFn)) {
-    throw new Error('argument#1 "callbackFn" required function');
+  if (!Utils.isFunction(registerFn)) {
+    throw new Error('argument#1 "registerFn" required function');
   }
 
   var viewScope = ViewManager.getViewScope(viewName);
   // 调用回调函数初始作用域
-  callbackFn(viewScope);
+  registerFn(viewScope);
 };
 
 /**
