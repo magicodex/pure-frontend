@@ -26,7 +26,7 @@ Global.config = {
 // 全局多语言信息
 Global.messages = {
   // 未知错误
-  unknownError: 'UnKnown error!',
+  unknownError: 'Unknown error!',
   // 未找到视图名称
   notFoundviewName: 'Not found viewName from response header!',
   // 未找到URL字符串

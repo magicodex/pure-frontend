@@ -1,7 +1,7 @@
 "use strict";
 
 /*!
- * pure-frontend v1.2.2 (https://gitee.com/magicodex/pure-frontend)
+ * pure-frontend v1.2.3 (https://gitee.com/magicodex/pure-frontend)
  * Licensed under MIT (https://gitee.com/magicodex/pure-frontend/blob/master/LICENSE)
  */
 
@@ -37,7 +37,7 @@ Global.config = {
 // 全局多语言信息
 Global.messages = {
   // 未知错误
-  unknownError: 'UnKnown error!',
+  unknownError: 'Unknown error!',
   // 未找到视图名称
   notFoundviewName: 'Not found viewName from response header!',
   // 未找到URL字符串
