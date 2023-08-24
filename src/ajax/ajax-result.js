@@ -108,7 +108,7 @@ AjaxResult.handleAjaxError = function (sourceElement, jqXHR, textStatus, errorTh
     message = jqXHR.responseJSON.message;
   }
 
-  App.showError(message || Global.message.unknownError);
+  App.showError(message || Global.messages.unknownError);
 };
 
 /* SOURCE-CODE-END */
