@@ -30,7 +30,7 @@ ViewLoader.sequenceGenerator = new SequenceGenerator(100001);
 ViewLoader.lastViewInfo = {};
 
 /**
- * @function 加载视图
+ * @description 加载视图
  * @param {string} url 
  */
 ViewLoader.prototype.loadView = function (url) {

@@ -1,6 +1,6 @@
 {
   "name": "pure-frontend",
-  "version": "1.2.3",
+  "version": "1.2.4-dev",
   "description": "支持单页面应用的前端框架",
   "license": "MIT",
   "author": "mh.z",

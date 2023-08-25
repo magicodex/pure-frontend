@@ -1,6 +1,12 @@
 # pure-frontend
 
 解决单页面应用开发中常见的问题，比如不同视图间的样式隔离、JS隔离等。
+
+## 安装依赖
+```
+npm install pure-frontend
+```
+
 ## 添加依赖
 
 依赖 jQuery，Bootstrap v4。
