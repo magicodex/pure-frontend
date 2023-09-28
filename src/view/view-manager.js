@@ -173,7 +173,7 @@ ViewManager.doRenderView = function (url, afterRenderFn) {
   var jqNewView = jQuery('<main class="pure-view"></main>');
   jqNewView.attr(Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_LOADING);
   jqNewView.attr(Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex);
-  jqNewView.css('visibility', 'hidden');
+  jqNewView.css('display', 'none');
   jqNewView.prependTo(jqViewParent);
 
   // 创建视图加载器
@@ -311,7 +311,7 @@ ViewManager.showView = function (viewElement) {
 
   // 设置该视图成可见
   jqView.attr(Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_SHOW);
-  jqView.css('visibility', 'visible');
+  jqView.css('display', 'block');
 
   if (Utils.isNotEmptyString(viewIndex)) {
     var viewScope = ViewManager.getViewScope(viewIndex, false);
@@ -359,7 +359,7 @@ ViewManager.hiddenView = function (viewElement) {
 
   // 设置该视图成不可见
   jqView.attr(Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_HIDDEN);
-  jqView.css('visibility', 'hidden');
+  jqView.css('display', 'none');
 };
 
 /* SOURCE-CODE-END */
