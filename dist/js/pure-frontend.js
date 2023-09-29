@@ -1,7 +1,7 @@
 "use strict";
 
 /*!
- * pure-frontend v1.2.4-dev (https://gitee.com/magicodex/pure-frontend)
+ * pure-frontend v1.2.4 (https://gitee.com/magicodex/pure-frontend)
  * Licensed under MIT (https://gitee.com/magicodex/pure-frontend/blob/master/LICENSE)
  */
 
