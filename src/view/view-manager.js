@@ -4,6 +4,7 @@ import jQuery from 'jquery';
 import { Utils } from '../utils';
 import { ViewLoader } from './view-loader';
 import { Global } from '../global';
+import { BrowserUrl } from '../helper/browser-url';
 
 /* SOURCE-CODE-START */
 
@@ -314,6 +315,9 @@ ViewManager.showView = function (viewElement, popMode) {
   // 设置该视图成可见
   jqView.attr(Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_SHOW);
   jqView.css('display', 'block');
+  // 修改浏览器URL
+  var viewUrl = jqView.attr(Global.config.viewUrlAttributeName);
+  BrowserUrl.setBrowserUrl(viewUrl);
 
   if (Utils.isNotEmptyString(viewIndex)) {
     var viewScope = ViewManager.getViewScope(viewIndex, false);

@@ -1,7 +1,7 @@
 "use strict";
 
 /*!
- * pure-frontend v1.2.5 (https://gitee.com/magicodex/pure-frontend)
+ * pure-frontend v1.2.6 (https://gitee.com/magicodex/pure-frontend)
  * Licensed under MIT (https://gitee.com/magicodex/pure-frontend/blob/master/LICENSE)
  */
 
@@ -16,14 +16,16 @@ function Global() {
 
 // 全局配置
 Global.config = {
-  // uiName 属性名称
-  uiNameAttributeName: 'data-pure-ui-name',
   // viewStatus 属性名称
   viewStatusAttributeName: 'data-pure-view-status',
   // viewIndex 属性名称
   viewIndexAttributeName: 'data-pure-view-index',
+  // viewUrl 属性名称
+  viewUrlAttributeName: 'data-pure-view-url',
   // tabIndex 属性名称
   tabIndexAttributeName: 'data-pure-tab-index',
+  // uiName 属性名称
+  uiNameAttributeName: 'data-pure-ui-name',
   // 单页面基本URL
   singlePageBaseUrl: '/'
 };
@@ -754,10 +756,9 @@ ViewLoader.prototype.renderView = function (url, data, textStatus, jqXHR) {
   jqElement.attr('id', viewName);
   // 渲染视图
   jqElement.html(data);
+  jqElement.attr(Global.config.viewUrlAttributeName, url);
   // 执行初始逻辑
   this.initViewAfterRender();
-  // 修改浏览器URL
-  BrowserUrl.setBrowserUrl(url);
 
   var view = new View(this._targetElement, viewInfo);
   var viewScope = ViewManager.getViewScope(viewName);
@@ -1113,6 +1114,9 @@ ViewManager.showView = function (viewElement, popMode) {
   // 设置该视图成可见
   jqView.attr(Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_SHOW);
   jqView.css('display', 'block');
+  // 修改浏览器URL
+  var viewUrl = jqView.attr(Global.config.viewUrlAttributeName);
+  BrowserUrl.setBrowserUrl(viewUrl);
 
   if (Utils.isNotEmptyString(viewIndex)) {
     var viewScope = ViewManager.getViewScope(viewIndex, false);

@@ -11,14 +11,16 @@ function Global() {
 
 // 全局配置
 Global.config = {
-  // uiName 属性名称
-  uiNameAttributeName: 'data-pure-ui-name',
   // viewStatus 属性名称
   viewStatusAttributeName: 'data-pure-view-status',
   // viewIndex 属性名称
   viewIndexAttributeName: 'data-pure-view-index',
+  // viewUrl 属性名称
+  viewUrlAttributeName: 'data-pure-view-url',
   // tabIndex 属性名称
   tabIndexAttributeName: 'data-pure-tab-index',
+  // uiName 属性名称
+  uiNameAttributeName: 'data-pure-ui-name',
   // 单页面基本URL
   singlePageBaseUrl: '/'
 };

@@ -63,8 +63,6 @@ QUnit.module('ViewLoader', function () {
       // 检查调整后的 id 属性值
       assert.strictEqual(jqTest.find('label').attr('for'), 'id1_100001');
       assert.strictEqual(jqTest.find('input').attr('id'), 'id1_100001');
-      // 检查跳转的 URL
-      assert.strictEqual(newLocationUrl, '/#/url/100001');
 
       assert.deepEqual(ViewLoader.lastViewInfo.viewScope, newViewScope);
       assert.deepEqual(ViewLoader.lastViewInfo.view, newView);

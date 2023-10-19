@@ -8,6 +8,7 @@ import { BrowserUrl } from '../helper/browser-url';
 import { View } from './view';
 import { ViewResponse } from './view-response';
 import { AjaxResult } from '../ajax/ajax-result';
+import { Global } from '../global';
 
 /* SOURCE-CODE-START */
 
@@ -98,10 +99,9 @@ ViewLoader.prototype.renderView = function (url, data, textStatus, jqXHR) {
   jqElement.attr('id', viewName);
   // 渲染视图
   jqElement.html(data);
+  jqElement.attr(Global.config.viewUrlAttributeName, url);
   // 执行初始逻辑
   this.initViewAfterRender();
-  // 修改浏览器URL
-  BrowserUrl.setBrowserUrl(url);
 
   var view = new View(this._targetElement, viewInfo);
   var viewScope = ViewManager.getViewScope(viewName);

@@ -120,9 +120,13 @@ QUnit.module('ViewManager', function () {
     var jqNewView = jQuery('<main class="pure-view"></main>');
     jqNewView.attr(Global.config.viewIndexAttributeName, 'viewName1');
     jqNewView.attr(Global.config.viewStatusAttributeName, 'loading');
+    jqNewView.attr(Global.config.viewUrlAttributeName, 'url/100001');
     jqNewView.attr(Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex);
     jqNewView.css('visibility', 'hidden');
     jqNewView.prependTo(jqTest);
+
+    var newLocationUrl = null;
+    var oldSetLocationUrl = BrowserUrl.setLocationUrl;
 
     try {
       var onViewLifecycleStartCalledFlag = false;
@@ -132,14 +136,22 @@ QUnit.module('ViewManager', function () {
         }
       };
 
+      // 避免浏览器跳转
+      BrowserUrl.setLocationUrl = function (newUrl) {
+        newLocationUrl = newUrl;
+      };
+
       // 调用方法
       ViewManager.startViewLifecycle(jqNewView[0]);
 
       assert.strictEqual(onViewLifecycleStartCalledFlag, true);
       assert.strictEqual(jqNewView.attr(Global.config.viewStatusAttributeName), 'show');
-      assert.strictEqual(jqNewView.css('visibility'), 'visible');
+      assert.strictEqual(jqNewView.css('display'), 'block');
+      // 检查跳转的 URL
+      assert.strictEqual(newLocationUrl, '/#/url/100001');
     } finally {
       ViewManager.viewScopes = {};
+      BrowserUrl.setLocationUrl = oldSetLocationUrl;
     }
   });
 
@@ -171,15 +183,19 @@ QUnit.module('ViewManager', function () {
       ViewManager.viewScopes = {};
     }
   });
-  
+
   QUnit.test('showView', function (assert) {
     var jqTest = $('#qunit-fixture');
     var jqNewView = jQuery('<main class="pure-view"></main>');
     jqNewView.attr(Global.config.viewIndexAttributeName, 'viewName1');
     jqNewView.attr(Global.config.viewStatusAttributeName, 'hidden');
+    jqNewView.attr(Global.config.viewUrlAttributeName, 'url/100001');
     jqNewView.attr(Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex);
     jqNewView.css('visibility', 'hidden');
     jqNewView.prependTo(jqTest);
+
+    var newLocationUrl = null;
+    var oldSetLocationUrl = BrowserUrl.setLocationUrl;
 
     try {
       var onViewShowCalledFlag = false;
@@ -189,14 +205,22 @@ QUnit.module('ViewManager', function () {
         }
       };
 
+      // 避免浏览器跳转
+      BrowserUrl.setLocationUrl = function (newUrl) {
+        newLocationUrl = newUrl;
+      };
+
       // 调用方法
       ViewManager.showView(jqNewView[0]);
 
       assert.strictEqual(onViewShowCalledFlag, true);
       assert.strictEqual(jqNewView.attr(Global.config.viewStatusAttributeName), 'show');
-      assert.strictEqual(jqNewView.css('visibility'), 'visible');
+      assert.strictEqual(jqNewView.css('display'), 'block');
+      // 检查跳转的 URL
+      assert.strictEqual(newLocationUrl, '/#/url/100001');
     } finally {
       ViewManager.viewScopes = {};
+      BrowserUrl.setLocationUrl = oldSetLocationUrl;
     }
   });
 
@@ -222,7 +246,7 @@ QUnit.module('ViewManager', function () {
 
       assert.strictEqual(onViewHiddenCalledFlag, true);
       assert.strictEqual(jqNewView.attr(Global.config.viewStatusAttributeName), 'hidden');
-      assert.strictEqual(jqNewView.css('visibility'), 'hidden');
+      assert.strictEqual(jqNewView.css('display'), 'none');
     } finally {
       ViewManager.viewScopes = {};
     }

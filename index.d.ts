@@ -12,6 +12,7 @@ export const config: {
     uiNameAttributeName: string;
     viewIndexAttributeName: string;
     viewStatusAttributeName: string;
+    viewUrlAttributeName: string;
 };
 
 export const messages: {

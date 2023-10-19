@@ -1,4 +1,4 @@
 @charset "UTF-8";/*!
- * pure-frontend v1.2.5 (https://gitee.com/magicodex/pure-frontend)
+ * pure-frontend v1.2.6 (https://gitee.com/magicodex/pure-frontend)
  * Licensed under MIT (https://gitee.com/magicodex/pure-frontend/blob/master/LICENSE)
  */.pure-app-alert{width:500px;left:50%;margin-left:-250px;z-index:9999;text-align:center}.pure-view-container{padding:15px 15px 15px 15px}.pure-view-mask{position:absolute;left:0;right:0;top:0;bottom:0;z-index:9999;background-image:url(../img/loading.gif);background-repeat:no-repeat;background-position:center;padding:0;border-width:0}.pure-view-mask>div{width:100%;height:100%;background-color:#212529;opacity:.05}
