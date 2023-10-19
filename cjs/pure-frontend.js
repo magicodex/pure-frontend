@@ -1,7 +1,7 @@
 "use strict";
 
 /*!
- * pure-frontend v1.2.4 (https://gitee.com/magicodex/pure-frontend)
+ * pure-frontend v1.2.5 (https://gitee.com/magicodex/pure-frontend)
  * Licensed under MIT (https://gitee.com/magicodex/pure-frontend/blob/master/LICENSE)
  */
 
@@ -913,7 +913,7 @@ ViewManager.pushView = function (url) {
   ViewManager.doRenderView(url, function () {
     if (jqCurrentView.length > 0) {
       // 隐藏新视图之前的视图
-      ViewManager.hiddenView(jqCurrentView[0]);
+      ViewManager.hiddenView(jqCurrentView[0], true);
     }
   });
 };
@@ -937,7 +937,7 @@ ViewManager.popView = function (url) {
     // 结束当前视图的生命周期
     ViewManager.stopViewLifecycle(jqView[0]);
     // 恢复上个视图
-    ViewManager.showView(jqView[1]);
+    ViewManager.showView(jqView[1], true);
   } else {
     // 加载新的视图
     ViewManager.doRenderView(url, function () {
@@ -1094,12 +1094,14 @@ ViewManager.stopViewLifecycle = function (viewElement) {
 /**
  * @description 显示视图
  * @param {(Document|Element)} targetElement 
+ * @param {boolean} [popMode=false]
  */
-ViewManager.showView = function (viewElement) {
+ViewManager.showView = function (viewElement, popMode) {
   if (Utils.isNullOrUndefined(viewElement)) {
     throw new Error('argument#0 "viewElement is null/undefined');
   }
 
+  popMode = (popMode === true);
   var jqView = jQuery(viewElement);
   var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
   var viewStatus = jqView.attr(Global.config.viewStatusAttributeName);
@@ -1122,6 +1124,14 @@ ViewManager.showView = function (viewElement) {
         // 视图显示时调用
         onViewShow();
       }
+
+      if (popMode) {
+        var onViewPop = viewScope.onViewPop;
+
+        if (!Utils.isNullOrUndefined(onViewPop)) {
+          onViewPop();
+        }
+      }
     }
   }
 };
@@ -1129,12 +1139,14 @@ ViewManager.showView = function (viewElement) {
 /**
  * @description 隐藏视图
  * @param {(Document|Element)} viewElement 
+ * @param {boolean} [pushMode=false]
  */
-ViewManager.hiddenView = function (viewElement) {
+ViewManager.hiddenView = function (viewElement, pushMode) {
   if (Utils.isNullOrUndefined(viewElement)) {
     throw new Error('argument#0 "viewElement is null/undefined');
   }
 
+  pushMode = (pushMode === true);
   var jqView = jQuery(viewElement);
   var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
   var viewStatus = jqView.attr(Global.config.viewStatusAttributeName);
@@ -1152,6 +1164,14 @@ ViewManager.hiddenView = function (viewElement) {
       if (!Utils.isNullOrUndefined(onViewHidden)) {
         // 视图隐藏时调用
         onViewHidden();
+      }
+
+      if (pushMode) {
+        var onViewPush = viewScope.onViewPush;
+
+        if (!Utils.isNullOrUndefined(onViewPush)) {
+          onViewPush();
+        }
       }
     }
   }
