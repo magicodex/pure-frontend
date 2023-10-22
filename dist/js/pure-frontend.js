@@ -1,7 +1,7 @@
 "use strict";
 
 /*!
- * pure-frontend v1.2.6 (https://gitee.com/magicodex/pure-frontend)
+ * pure-frontend v1.2.7 (https://gitee.com/magicodex/pure-frontend)
  * Licensed under MIT (https://gitee.com/magicodex/pure-frontend/blob/master/LICENSE)
  */
 
@@ -1513,7 +1513,7 @@ App.viewMain = function (viewName, mainFn) {
  * @param {string} message 
  */
 App.showMessage = function (message) {
-  AppAlertMessages.showError(message);
+  AppAlertMessages.showMessage(message);
 };
 
 /**

@@ -56,7 +56,7 @@ App.viewMain = function (viewName, mainFn) {
  * @param {string} message 
  */
 App.showMessage = function (message) {
-  AppAlertMessages.showError(message);
+  AppAlertMessages.showMessage(message);
 };
 
 /**
