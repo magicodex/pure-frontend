@@ -35,6 +35,12 @@ export namespace app {
     function loadView(url: any): void;
 
     /**
+     * @description 替换视图
+     * @param {string} url URL字符串
+     */
+    function replaceView(url: any): void;
+
+    /**
      * @description 返回到之前的视图
      * @param {string} url URL字符串
      */
@@ -204,6 +210,8 @@ export namespace fn {
     namespace App {
         function loadView(url: any): void;
 
+        function replaceView(url: any): void;
+
         function popView(url: any): void;
 
         function pushView(url: any): void;
@@ -319,6 +327,8 @@ export namespace fn {
         function startViewLifecycle(viewElement: any): void;
 
         function loadView(url: any): void;
+
+        function replaceView(url: any): void;
 
         function hiddenView(viewElement: any): void;
 

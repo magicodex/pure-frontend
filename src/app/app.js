@@ -76,6 +76,14 @@ App.loadView = function (url) {
 };
 
 /**
+ * @description 替换视图
+ * @param {string} url URL字符串
+ */
+App.replaceView = function (url) {
+  ViewManager.replaceView(url);
+};
+
+/**
  * @description 加载视图并添加到堆栈顶部
  * @param {string} url URL字符串
  */

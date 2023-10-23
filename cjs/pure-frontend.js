@@ -1,7 +1,7 @@
 "use strict";
 
 /*!
- * pure-frontend v1.2.7 (https://gitee.com/magicodex/pure-frontend)
+ * pure-frontend v1.2.8 (https://gitee.com/magicodex/pure-frontend)
  * Licensed under MIT (https://gitee.com/magicodex/pure-frontend/blob/master/LICENSE)
  */
 
@@ -815,6 +815,10 @@ function ViewManager() {
   //
 }
 
+ViewManager.privateFn = {
+  getOnViewClosingFn: getOnViewClosingFn
+};
+
 ViewManager.viewScopes = {};
 ViewManager.currentTab = { tabIndex: 'default' };
 ViewManager.sequenceGenerator = new SequenceGenerator(100001);
@@ -887,12 +891,43 @@ ViewManager.loadView = function (url) {
     [Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex]);
   var jqView = jqViewParent.children(viewSelector);
 
+  var onViewClosingFn = getOnViewClosingFn(jqView);
+  var doLoadViewFn = function () {
+    // 加载新的视图
+    ViewManager.doRenderView(url, function () {
+      // 结束新视图之前所有视图的生命周期
+      jqView.each(function (index, viewElement) {
+        ViewManager.stopViewLifecycle(viewElement);
+      });
+    });
+  };
+
+  if (Utils.isNullOrUndefined(onViewClosingFn)) {
+    doLoadViewFn();
+  } else {
+    onViewClosingFn(doLoadViewFn);
+  }
+};
+
+/**
+ * @description 替换视图
+ * @param {string} url URL字符串
+ */
+ViewManager.replaceView = function (url) {
+  if (!Utils.isString(url)) {
+    throw new Error('argument#0 "url" required string');
+  }
+
+  var jqViewParent = jQuery(ViewManager.appSelector);
+  var viewSelector = Utils.formatString('main[{0}="{1}"]',
+    [Global.config.tabIndexAttributeName,
+    ViewManager.currentTab.tabIndex]);
+  var jqView = jqViewParent.children(viewSelector);
+
   // 加载新的视图
   ViewManager.doRenderView(url, function () {
-    // 结束新视图之前所有视图的生命周期
-    jqView.each(function (index, viewElement) {
-      ViewManager.stopViewLifecycle(viewElement);
-    });
+    // 结束当前视图的生命周期
+    ViewManager.stopViewLifecycle(jqView[0]);
   });
 };
 
@@ -934,19 +969,28 @@ ViewManager.popView = function (url) {
     ViewManager.currentTab.tabIndex]);
   var jqView = jqViewParent.children(viewSelector);
 
-  if (jqView.length >= 2) {
-    // 结束当前视图的生命周期
-    ViewManager.stopViewLifecycle(jqView[0]);
-    // 恢复上个视图
-    ViewManager.showView(jqView[1], true);
+  var onViewClosingFn = getOnViewClosingFn(jqView);
+  var doPopViewFn = function () {
+    if (jqView.length >= 2) {
+      // 结束当前视图的生命周期
+      ViewManager.stopViewLifecycle(jqView[0]);
+      // 恢复上个视图
+      ViewManager.showView(jqView[1], true);
+    } else {
+      // 加载新的视图
+      ViewManager.doRenderView(url, function () {
+        if (jqView.length >= 1) {
+          // 结束当前视图的生命周期
+          ViewManager.stopViewLifecycle(jqView[0]);
+        }
+      });
+    }
+  };
+
+  if (Utils.isNullOrUndefined(onViewClosingFn)) {
+    doPopViewFn();
   } else {
-    // 加载新的视图
-    ViewManager.doRenderView(url, function () {
-      if (jqView.length >= 1) {
-        // 结束当前视图的生命周期
-        ViewManager.stopViewLifecycle(jqView[0]);
-      }
-    });
+    onViewClosingFn(doPopViewFn);
   }
 };
 
@@ -1184,6 +1228,30 @@ ViewManager.hiddenView = function (viewElement, pushMode) {
   jqView.attr(Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_HIDDEN);
   jqView.css('display', 'none');
 };
+
+
+function getOnViewClosingFn(jqView) {
+  if (jqView.length <= 0) {
+    return null;
+  }
+
+  var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
+  if (!Utils.isNotEmptyString(viewIndex)) {
+    return null;
+  }
+
+  var viewScope = ViewManager.getViewScope(viewIndex, false);
+  if (Utils.isNullOrUndefined(viewScope)) {
+    return null;
+  }
+
+  var onViewClosing = viewScope.onViewClosing;
+  if (Utils.isNullOrUndefined(onViewClosing)) {
+    return null;
+  }
+
+  return onViewClosing;
+}
 
 
 
@@ -1524,6 +1592,14 @@ App.showError = function (message) {
  */
 App.loadView = function (url) {
   ViewManager.loadView(url);
+};
+
+/**
+ * @description 替换视图
+ * @param {string} url URL字符串
+ */
+App.replaceView = function (url) {
+  ViewManager.replaceView(url);
 };
 
 /**
