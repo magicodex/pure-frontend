@@ -16,8 +16,9 @@ import { AjaxCallService } from '../ajax/ajax-call-service';
  * @class
  * @param {(Document|Element)} viewElement 
  * @param {ViewInfo} viewInfo 
+ * @param {*} viewScope
  */
-function View(viewElement, viewInfo) {
+function View(viewElement, viewInfo, viewScope) {
   if (Utils.isNullOrUndefined(viewElement)) {
     throw new Error('argument#0 "viewElement is null/undefined');
   }
@@ -28,6 +29,7 @@ function View(viewElement, viewInfo) {
 
   this._viewElement = viewElement;
   this._viewInfo = viewInfo;
+  this._viewScope = viewScope;
   this._uiNameAttributeName = Global.config.uiNameAttributeName;
   this._dataModel = new uiData.Model(viewElement);
 
@@ -51,6 +53,15 @@ View.prototype.getViewElement = function () {
 View.prototype.getViewInfo = function () {
   return this._viewInfo;
 };
+
+/**
+ * @description 返回视图作用域
+ * @returns {*}
+ */
+View.prototype.getViewScope = function () {
+  return this._viewScope;
+};
+
 
 /**
  * @description 返回数据模型
