@@ -129,6 +129,8 @@ export namespace fn {
 
         getViewInfo(): ViewInfo;
 
+        getViewScope(): any;
+
     }
 
     class ViewInfo {
