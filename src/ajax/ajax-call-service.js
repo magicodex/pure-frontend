@@ -25,8 +25,8 @@ AjaxCallService.prototype.callService = function (url, data, opts) {
     throw new Error('argument#0 "url" required string');
   }
 
-  data = this.convertData(data);
   opts = Utils.emptyObjectIfNullOrUndefined(opts);
+  data = this.convertData(data, opts);
 
   var initOpts = {
     url: url,
@@ -60,9 +60,10 @@ AjaxCallService.prototype.beforeSend = function (jqXHR, settings) {
 /**
  * @description 转换发送到服务器的数据
  * @param {*} data 
+ * @param {PlainObject} opts
  * @returns {*}
  */
-AjaxCallService.prototype.convertData = function (data) {
+AjaxCallService.prototype.convertData = function (data, opts) {
   data = Utils.emptyObjectIfNullOrUndefined(data);
   var dataStr = JSON.stringify(data);
 
