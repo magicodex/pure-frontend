@@ -103,8 +103,8 @@ ViewLoader.prototype.renderView = function (url, data, textStatus, jqXHR) {
   // 执行初始逻辑
   this.initViewAfterRender();
 
-  var view = new View(this._targetElement, viewInfo);
   var viewScope = ViewManager.getViewScope(viewName);
+  var view = new View(this._targetElement, viewInfo, viewScope);
   ViewLoader.lastViewInfo.viewScope = Utils.emptyObjectIfNullOrUndefined(viewScope);
   ViewLoader.lastViewInfo.view = view;
 
