@@ -88,6 +88,7 @@ export namespace fn {
 
         callService(url: any, data: any, opts: any): AjaxResult;
 
+        convertData(data: any): any;
     }
 
     class AjaxResult {

@@ -1430,9 +1430,8 @@ AjaxCallService.prototype.callService = function (url, data, opts) {
     throw new Error('argument#0 "url" required string');
   }
 
-  data = Utils.emptyObjectIfNullOrUndefined(data);
+  data = this.convertData(data);
   opts = Utils.emptyObjectIfNullOrUndefined(opts);
-  var dataStr = JSON.stringify(data);
 
   var initOpts = {
     url: url,
@@ -1440,7 +1439,7 @@ AjaxCallService.prototype.callService = function (url, data, opts) {
     cache: false,
     contentType: 'application/json',
     dataType: 'json',
-    data: dataStr,
+    data: data,
     beforeSend: this.beforeSend,
     error: function (jqXHR, textStatus, errorThrown) {
       // 覆盖全局的错误处理
@@ -1461,6 +1460,18 @@ AjaxCallService.prototype.callService = function (url, data, opts) {
  */
 AjaxCallService.prototype.beforeSend = function (jqXHR, settings) {
   //
+};
+
+/**
+ * @description 转换发送到服务器的数据
+ * @param {*} data 
+ * @returns {*}
+ */
+AjaxCallService.prototype.convertData = function (data) {
+  data = Utils.emptyObjectIfNullOrUndefined(data);
+  var dataStr = JSON.stringify(data);
+
+  return dataStr;
 };
 
 
