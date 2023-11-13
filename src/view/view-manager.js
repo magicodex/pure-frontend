@@ -5,6 +5,7 @@ import { Utils } from '../utils';
 import { ViewLoader } from './view-loader';
 import { Global } from '../global';
 import { BrowserUrl } from '../helper/browser-url';
+import { BrowserTitle } from '../helper/browser-title';
 
 /* SOURCE-CODE-START */
 
@@ -362,6 +363,8 @@ ViewManager.showView = function (viewElement, popMode) {
   // 修改浏览器URL
   var viewUrl = jqView.attr(Global.config.viewUrlAttributeName);
   BrowserUrl.setBrowserUrl(viewUrl);
+  var viewTitle = jqView.attr(Global.config.viewTitleAttributeName);
+  BrowserTitle.setBrowserTitle(viewTitle);
 
   if (Utils.isNotEmptyString(viewIndex)) {
     var viewScope = ViewManager.getViewScope(viewIndex, false);

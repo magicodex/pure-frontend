@@ -94,12 +94,14 @@ ViewLoader.prototype.renderView = function (url, data, textStatus, jqXHR) {
   var viewResponse = new ViewResponse(url, jqXHR);
   var viewInfo = viewResponse.getViewInfo();
   var viewName = viewInfo.getViewName();
+  var viewTitle = viewInfo.getViewTitle();
   var jqElement = jQuery(this._targetElement);
 
   jqElement.attr('id', viewName);
   // 渲染视图
   jqElement.html(data);
   jqElement.attr(Global.config.viewUrlAttributeName, url);
+  jqElement.attr(Global.config.viewTitleAttributeName, viewTitle);
   // 执行初始逻辑
   this.initViewAfterRender();
 

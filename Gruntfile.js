@@ -8,6 +8,7 @@ module.exports = function (grunt) {
     'src/helper/sequence-generator.js',
     'src/helper/url-parser.js',
     'src/helper/browser-url.js',
+    'src/helper/browser-title.js',
     'src/view/view.js',
     'src/view/view-info.js',
     'src/view/view-response.js',

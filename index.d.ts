@@ -197,6 +197,8 @@ export namespace fn {
 
     function BrowserUrl(): void;
 
+    function BrowserTitle(): void;
+
     function Global(): void;
 
     function UrlParser(): void;
@@ -244,6 +246,12 @@ export namespace fn {
         function setBrowserUrl(viewUrl: any): void;
 
         function setLocationUrl(newUrl: any): void;
+
+    }
+
+    namespace BrowserUrl {
+
+        function setBrowserTitle(viewTitle: any): void;
 
     }
 

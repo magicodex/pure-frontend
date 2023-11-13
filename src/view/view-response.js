@@ -24,6 +24,7 @@ function ViewResponse(url, jqXHR) {
 }
 
 ViewResponse.viewNameHeaderName = 'x-page-code';
+ViewResponse.viewTitleHeaderName = 'x-page-name';
 ViewResponse.fullUrlHeaderName = 'x-page-url';
 ViewResponse.urlPatternHeaderName = 'x-url-pattern';
 
@@ -47,8 +48,14 @@ ViewResponse.prototype.getViewInfo = function () {
     throw new Error(Global.messages.notFoundUrlPattern);
   }
 
+  var viewTitle = this._jqXHR.getResponseHeader(ViewResponse.viewTitleHeaderName);
+  if (Utils.isNotEmptyString(viewTitle)) {
+    viewTitle = decodeURIComponent(viewTitle);
+  }
+
   var viewInfo = new ViewInfo();
   viewInfo.setViewName(viewName);
+  viewInfo.setViewTitle(viewTitle);
   viewInfo.setFullUrl(fullUrl);
   viewInfo.setUrlPattern(urlPattern);
 

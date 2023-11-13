@@ -4,6 +4,7 @@ import { Utils } from './utils';
 import { SequenceGenerator } from './helper/sequence-generator';
 import { UrlParser } from './helper/url-parser';
 import { BrowserUrl } from './helper/browser-url';
+import { BrowserTitle } from './helper/browser-title';
 import { View } from './view/view';
 import { ViewInfo } from './view/view-info';
 import { ViewResponse } from './view/view-response';
@@ -34,6 +35,7 @@ var Pure = {
     SequenceGenerator: SequenceGenerator,
     UrlParser: UrlParser,
     BrowserUrl: BrowserUrl,
+    BrowserTitle: BrowserTitle,
     View: View,
     ViewInfo: ViewInfo,
     ViewResponse: ViewResponse,

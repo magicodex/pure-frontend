@@ -1,7 +1,7 @@
 "use strict";
 
 /*!
- * pure-frontend v1.2.9 (https://gitee.com/magicodex/pure-frontend)
+ * pure-frontend v1.2.10 (https://gitee.com/magicodex/pure-frontend)
  * Licensed under MIT (https://gitee.com/magicodex/pure-frontend/blob/master/LICENSE)
  */
 
@@ -22,6 +22,8 @@ Global.config = {
   viewIndexAttributeName: 'data-pure-view-index',
   // viewUrl 属性名称
   viewUrlAttributeName: 'data-pure-view-url',
+  // viewTitle 属性名称
+  viewTitleAttributeName: 'data-pure-view-title',
   // tabIndex 属性名称
   tabIndexAttributeName: 'data-pure-tab-index',
   // uiName 属性名称
@@ -469,6 +471,26 @@ BrowserUrl.setLocationUrl = function (newUrl) {
 
 
 /**
+ * 浏览器标题
+ * @class
+ */
+function BrowserTitle() {
+  //
+}
+
+/**
+ * @description 修改浏览器标题
+ * @param {string} viewTitle 
+ */
+BrowserTitle.setBrowserTitle = function (viewTitle) {
+  //
+};
+
+
+
+
+
+/**
  * 视图
  * @class
  * @param {(Document|Element)} viewElement 
@@ -595,6 +617,8 @@ View.prototype.$ui = function (name) {
 function ViewInfo() {
   // 视图名称
   this._viewName = null;
+  // 视图标题
+  this._viewTitle = null;
   // URL字符串
   this._fullUrl = null;
   // URL模式
@@ -607,6 +631,14 @@ ViewInfo.prototype.getViewName = function () {
 
 ViewInfo.prototype.setViewName = function (viewName) {
   this._viewName = viewName;
+};
+
+ViewInfo.prototype.getViewTitle = function () {
+  return this._viewTitle;
+};
+
+ViewInfo.prototype.setViewTitle = function (viewTitle) {
+  this._viewTitle = viewTitle;
 };
 
 ViewInfo.prototype.getFullUrl = function () {
@@ -646,6 +678,7 @@ function ViewResponse(url, jqXHR) {
 }
 
 ViewResponse.viewNameHeaderName = 'x-page-code';
+ViewResponse.viewTitleHeaderName = 'x-page-name';
 ViewResponse.fullUrlHeaderName = 'x-page-url';
 ViewResponse.urlPatternHeaderName = 'x-url-pattern';
 
@@ -669,8 +702,14 @@ ViewResponse.prototype.getViewInfo = function () {
     throw new Error(Global.messages.notFoundUrlPattern);
   }
 
+  var viewTitle = this._jqXHR.getResponseHeader(ViewResponse.viewTitleHeaderName);
+  if (Utils.isNotEmptyString(viewTitle)) {
+    viewTitle = decodeURIComponent(viewTitle);
+  }
+
   var viewInfo = new ViewInfo();
   viewInfo.setViewName(viewName);
+  viewInfo.setViewTitle(viewTitle);
   viewInfo.setFullUrl(fullUrl);
   viewInfo.setUrlPattern(urlPattern);
 
@@ -762,12 +801,14 @@ ViewLoader.prototype.renderView = function (url, data, textStatus, jqXHR) {
   var viewResponse = new ViewResponse(url, jqXHR);
   var viewInfo = viewResponse.getViewInfo();
   var viewName = viewInfo.getViewName();
+  var viewTitle = viewInfo.getViewTitle();
   var jqElement = jQuery(this._targetElement);
 
   jqElement.attr('id', viewName);
   // 渲染视图
   jqElement.html(data);
   jqElement.attr(Global.config.viewUrlAttributeName, url);
+  jqElement.attr(Global.config.viewTitleAttributeName, viewTitle);
   // 执行初始逻辑
   this.initViewAfterRender();
 
@@ -1172,6 +1213,8 @@ ViewManager.showView = function (viewElement, popMode) {
   // 修改浏览器URL
   var viewUrl = jqView.attr(Global.config.viewUrlAttributeName);
   BrowserUrl.setBrowserUrl(viewUrl);
+  var viewTitle = jqView.attr(Global.config.viewTitleAttributeName);
+  BrowserTitle.setBrowserTitle(viewTitle);
 
   if (Utils.isNotEmptyString(viewIndex)) {
     var viewScope = ViewManager.getViewScope(viewIndex, false);
@@ -1660,6 +1703,7 @@ var Pure = {
     SequenceGenerator: SequenceGenerator,
     UrlParser: UrlParser,
     BrowserUrl: BrowserUrl,
+    BrowserTitle: BrowserTitle,
     View: View,
     ViewInfo: ViewInfo,
     ViewResponse: ViewResponse,
