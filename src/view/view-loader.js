@@ -115,9 +115,10 @@ ViewLoader.prototype.renderView = function (url, data, textStatus, jqXHR) {
   this.initViewAfterRender();
 
   var viewScope = ViewManager.getViewScope(viewName);
+  viewScope = Utils.emptyObjectIfNullOrUndefined(viewScope);
   var view = new View(this._targetElement, viewInfo, viewScope);
   viewScope.VIEW = view;
-  ViewLoader.lastViewInfo.viewScope = Utils.emptyObjectIfNullOrUndefined(viewScope);
+  ViewLoader.lastViewInfo.viewScope = viewScope;
   ViewLoader.lastViewInfo.view = view;
 
   if (!Utils.isNullOrUndefined(viewScope)) {
