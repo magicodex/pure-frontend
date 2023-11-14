@@ -434,6 +434,11 @@ ViewManager.hiddenView = function (viewElement, pushMode) {
 };
 
 
+/**
+ * @description 获取视图的 onViewClosing 函数
+ * @param {jQuery} jqView 
+ * @returns {function}
+ */
 function getOnViewClosingFn(jqView) {
   if (jqView.length <= 0) {
     return null;

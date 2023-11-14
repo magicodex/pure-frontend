@@ -38,6 +38,13 @@ function View(viewElement, viewInfo, viewScope) {
   this._urlParams = UrlParser.parseAllParams(fullUrl, urlPattern);
 }
 
+View.ON_VIEW_LIFECYCLE_START = 'onViewLifecycleStart';
+View.ON_VIEW_LIFECYCLE_STOP = 'onViewLifecycleStop';
+View.ON_VIEW_SHOW = 'onViewShow';
+View.ON_VIEW_HIDDEN = 'onViewHidden';
+View.ON_VIEW_PUSH = 'onViewPush';
+View.ON_VIEW_POP = 'onViewPop';
+
 /**
  * @description 返回视图元素
  * @returns {(Document|Element)}
