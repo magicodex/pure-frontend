@@ -4,7 +4,6 @@ import jQuery from 'jquery';
 import { Utils } from '../utils';
 import { ViewManager } from './view-manager';
 import { SequenceGenerator } from '../helper/sequence-generator';
-import { BrowserUrl } from '../helper/browser-url';
 import { View } from './view';
 import { ViewResponse } from './view-response';
 import { AjaxResult } from '../ajax/ajax-result';
@@ -52,19 +51,28 @@ ViewLoader.prototype.loadView = function (url) {
     try {
       // 判断是否需要渲染视图
       if (!viewLoader.preRenderView(url, data, textStatus, jqXHR)) {
-        viewLoader._callbackFn(false);
+        if (!Utils.isNullOrUndefined(viewLoader._callbackFn)) {
+          viewLoader._callbackFn(false);
+        }
+
         return;
       }
 
       // 渲染视图
       viewLoader.renderView(url, data, textStatus, jqXHR);
     } catch (error) {
-      console.error(error.message);
-      viewLoader._callbackFn(false);
+      console.error(error);
+
+      if (!Utils.isNullOrUndefined(viewLoader._callbackFn)) {
+        viewLoader._callbackFn(false);
+      }
     }
   }).fail(function (jqXHR, textStatus, errorThrown) {
     AjaxResult.handleAjaxError(null, jqXHR, textStatus, errorThrown);
-    viewLoader._callbackFn(false);
+
+    if (!Utils.isNullOrUndefined(viewLoader._callbackFn)) {
+      viewLoader._callbackFn(false);
+    }
   });
 };
 
@@ -100,6 +108,7 @@ ViewLoader.prototype.renderView = function (url, data, textStatus, jqXHR) {
   jqElement.attr('id', viewName);
   // 渲染视图
   jqElement.html(data);
+  // 添加自定义属性
   jqElement.attr(Global.config.viewUrlAttributeName, url);
   jqElement.attr(Global.config.viewTitleAttributeName, viewTitle);
   // 执行初始逻辑
@@ -107,6 +116,7 @@ ViewLoader.prototype.renderView = function (url, data, textStatus, jqXHR) {
 
   var viewScope = ViewManager.getViewScope(viewName);
   var view = new View(this._targetElement, viewInfo, viewScope);
+  viewScope.VIEW = view;
   ViewLoader.lastViewInfo.viewScope = Utils.emptyObjectIfNullOrUndefined(viewScope);
   ViewLoader.lastViewInfo.view = view;
 
