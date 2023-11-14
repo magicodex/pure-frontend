@@ -171,6 +171,7 @@ ViewManager.popView = function (url) {
     ViewManager.currentTab.tabIndex]);
   var jqView = jqViewParent.children(viewSelector);
   var viewHolder = new ViewHolder(jqView);
+  var viewObject = viewHolder.getViewObject;
 
   var onViewClosingFn = viewHolder.getPropValueFromViewScope(View.ON_VIEW_CLOSING);
   var doPopViewFn = function () {
@@ -193,7 +194,7 @@ ViewManager.popView = function (url) {
   if (Utils.isNullOrUndefined(onViewClosingFn)) {
     doPopViewFn();
   } else {
-    onViewClosingFn(doPopViewFn);
+    onViewClosingFn(viewObject, doPopViewFn);
   }
 };
 
