@@ -110,7 +110,7 @@ ViewHolder.prototype.getPropValueFromViewScope = function (propName) {
  * @param {string} propName 
  * @param {*} propValue
  */
-ViewHolder.prototype.setPropValueFromViewScope = function (propName, propValue) {
+ViewHolder.prototype.setPropValueToViewScope = function (propName, propValue) {
   if (!Utils.isString(propName)) {
     throw new Error('argument#0 "propName" required string');
   }
@@ -136,7 +136,7 @@ ViewHolder.prototype.getAttrValueFromTagElement = function (attrName) {
  * @param {string} attrName 
  * @param {*} attrValue 
  */
-ViewHolder.prototype.setAttrValueFromTagElement = function (attrName, attrValue) {
+ViewHolder.prototype.setAttrValueToTagElement = function (attrName, attrValue) {
   this._jqView.attr(attrName, attrValue);
 };
 

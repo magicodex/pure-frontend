@@ -44,6 +44,7 @@ View.ON_VIEW_SHOW = 'onViewShow';
 View.ON_VIEW_HIDDEN = 'onViewHidden';
 View.ON_VIEW_PUSH = 'onViewPush';
 View.ON_VIEW_POP = 'onViewPop';
+View.ON_VIEW_CLOSING = 'onViewClosing';
 
 /**
  * @description 返回视图元素

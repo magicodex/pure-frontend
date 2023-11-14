@@ -2,6 +2,8 @@
 
 import jQuery from 'jquery';
 import { Utils } from '../utils';
+import { View } from './view';
+import { ViewHolder } from './view-holder';
 import { ViewLoader } from './view-loader';
 import { Global } from '../global';
 import { BrowserUrl } from '../helper/browser-url';
@@ -16,10 +18,6 @@ import { BrowserTitle } from '../helper/browser-title';
 function ViewManager() {
   //
 }
-
-ViewManager.privateFn = {
-  getOnViewClosingFn: getOnViewClosingFn
-};
 
 ViewManager.viewScopes = {};
 ViewManager.currentTab = { tabIndex: 'default' };
@@ -92,8 +90,9 @@ ViewManager.loadView = function (url) {
   var viewSelector = Utils.formatString('main[{0}="{1}"]',
     [Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex]);
   var jqView = jqViewParent.children(viewSelector);
+  var viewHolder = new ViewHolder(jqView);
 
-  var onViewClosingFn = getOnViewClosingFn(jqView);
+  var onViewClosingFn = viewHolder.getPropValueFromViewScope(View.ON_VIEW_CLOSING);
   var doLoadViewFn = function () {
     // 加载新的视图
     ViewManager.doRenderView(url, function () {
@@ -170,8 +169,9 @@ ViewManager.popView = function (url) {
     [Global.config.tabIndexAttributeName,
     ViewManager.currentTab.tabIndex]);
   var jqView = jqViewParent.children(viewSelector);
+  var viewHolder = new ViewHolder(jqView);
 
-  var onViewClosingFn = getOnViewClosingFn(jqView);
+  var onViewClosingFn = viewHolder.getPropValueFromViewScope(View.ON_VIEW_CLOSING);
   var doPopViewFn = function () {
     if (jqView.length >= 2) {
       // 结束当前视图的生命周期
@@ -264,28 +264,22 @@ ViewManager.startViewLifecycle = function (viewElement) {
   }
 
   var jqView = jQuery(viewElement);
-  var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
-  var tabIndex = jqView.attr(Global.config.tabIndexAttributeName);
-  var viewStatus = jqView.attr(Global.config.viewStatusAttributeName);
+  var viewHolder = new ViewHolder(jqView);
+  var tabIndex = viewHolder.getAttrValueFromTagElement(Global.config.tabIndexAttributeName);
+  var viewStatus = viewHolder.getAttrValueFromTagElement(Global.config.viewStatusAttributeName);
 
   if (viewStatus === ViewManager.VIEW_STATUS_DESTROY) {
+    var viewIndex = viewHolder.getAttrValueFromTagElement(Global.config.viewIndexAttributeName);
     // 移除该视图对应的作用域
     ViewManager.removeViewScope(viewIndex);
 
     return;
   }
 
-  if (Utils.isNotEmptyString(viewIndex)) {
-    var viewScope = ViewManager.getViewScope(viewIndex, false);
-
-    if (!Utils.isNullOrUndefined(viewScope)) {
-      var onViewLifecycleStart = viewScope.onViewLifecycleStart;
-
-      if (!Utils.isNullOrUndefined(onViewLifecycleStart)) {
-        // 视图生命周期开启时调用
-        onViewLifecycleStart();
-      }
-    }
+  var onViewLifecycleStart = viewHolder.getPropValueFromViewScope(View.ON_VIEW_LIFECYCLE_START);
+  if (!Utils.isNullOrUndefined(onViewLifecycleStart)) {
+    // 视图生命周期开启时调用
+    onViewLifecycleStart();
   }
 
   if (tabIndex === ViewManager.currentTab.tabIndex) {
@@ -310,30 +304,27 @@ ViewManager.stopViewLifecycle = function (viewElement) {
   ViewManager.hiddenView(viewElement);
 
   var jqView = jQuery(viewElement);
-  var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
-  var viewStatus = jqView.attr(Global.config.viewStatusAttributeName);
+  var viewHolder = new ViewHolder(jqView);
+  var viewStatus = viewHolder.getAttrValueFromTagElement(Global.config.viewStatusAttributeName);
 
   if (!(viewStatus === ViewManager.VIEW_STATUS_HIDDEN || viewStatus === ViewManager.VIEW_STATUS_LOADING)) {
     return;
   }
 
-  if (Utils.isNotEmptyString(viewIndex)) {
-    var viewScope = ViewManager.getViewScope(viewIndex, false);
+  if (!(viewStatus === ViewManager.VIEW_STATUS_LOADING)) {
+    var onViewLifecycleStop = viewHolder.getPropValueFromViewScope(View.ON_VIEW_LIFECYCLE_STOP);
 
-    if (!(viewStatus === ViewManager.VIEW_STATUS_LOADING) && !Utils.isNullOrUndefined(viewScope)) {
-      var onViewLifecycleStop = viewScope.onViewLifecycleStop;
-
-      if (!Utils.isNullOrUndefined(onViewLifecycleStop)) {
-        // 视图生命周期结束时调用
-        onViewLifecycleStop();
-      }
-
-      // 移除该视图对应的作用域
-      ViewManager.removeViewScope(viewIndex);
+    if (!Utils.isNullOrUndefined(onViewLifecycleStop)) {
+      // 视图生命周期结束时调用
+      onViewLifecycleStop();
     }
+
+    var viewIndex = viewHolder.getAttrValueFromTagElement(Global.config.viewIndexAttributeName);
+    // 移除该视图对应的作用域
+    ViewManager.removeViewScope(viewIndex);
   }
 
-  jqView.attr(Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_DESTROY);
+  viewHolder.setAttrValueToTagElement(Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_DESTROY);
   // 移除该视图对应的 DOM 元素
   jqView.remove();
 };
@@ -350,40 +341,33 @@ ViewManager.showView = function (viewElement, popMode) {
 
   popMode = (popMode === true);
   var jqView = jQuery(viewElement);
-  var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
-  var viewStatus = jqView.attr(Global.config.viewStatusAttributeName);
+  var viewHolder = new ViewHolder(jqView);
+  var viewStatus = viewHolder.getAttrValueFromTagElement(Global.config.viewStatusAttributeName);
 
   if (!(viewStatus === ViewManager.VIEW_STATUS_LOADING || viewStatus === ViewManager.VIEW_STATUS_HIDDEN)) {
     return;
   }
 
   // 设置该视图成可见
-  jqView.attr(Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_SHOW);
-  jqView.css('display', 'block');
+  viewHolder.setAttrValueToTagElement(Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_SHOW);
+  viewHolder.setViewToShow();
   // 修改浏览器URL
-  var viewUrl = jqView.attr(Global.config.viewUrlAttributeName);
+  var viewUrl = viewHolder.getAttrValueFromTagElement(Global.config.viewUrlAttributeName);
   BrowserUrl.setBrowserUrl(viewUrl);
-  var viewTitle = jqView.attr(Global.config.viewTitleAttributeName);
+  var viewTitle = viewHolder.getAttrValueFromTagElement(Global.config.viewTitleAttributeName);
   BrowserTitle.setBrowserTitle(viewTitle);
 
-  if (Utils.isNotEmptyString(viewIndex)) {
-    var viewScope = ViewManager.getViewScope(viewIndex, false);
+  var onViewShow = viewHolder.getPropValueFromViewScope(View.ON_VIEW_SHOW);
+  if (!Utils.isNullOrUndefined(onViewShow)) {
+    // 视图显示时调用
+    onViewShow();
+  }
 
-    if (!Utils.isNullOrUndefined(viewScope)) {
-      var onViewShow = viewScope.onViewShow;
+  if (popMode) {
+    var onViewPop = viewHolder.getPropValueFromViewScope(View.ON_VIEW_POP);
 
-      if (!Utils.isNullOrUndefined(onViewShow)) {
-        // 视图显示时调用
-        onViewShow();
-      }
-
-      if (popMode) {
-        var onViewPop = viewScope.onViewPop;
-
-        if (!Utils.isNullOrUndefined(onViewPop)) {
-          onViewPop();
-        }
-      }
+    if (!Utils.isNullOrUndefined(onViewPop)) {
+      onViewPop();
     }
   }
 };
@@ -400,30 +384,26 @@ ViewManager.hiddenView = function (viewElement, pushMode) {
 
   pushMode = (pushMode === true);
   var jqView = jQuery(viewElement);
-  var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
-  var viewStatus = jqView.attr(Global.config.viewStatusAttributeName);
+  var viewHolder = new ViewHolder(jqView);
+  var viewStatus = viewHolder.getAttrValueFromTagElement(Global.config.viewStatusAttributeName);
 
   if (!(viewStatus === ViewManager.VIEW_STATUS_SHOW || viewStatus === ViewManager.VIEW_STATUS_LOADING)) {
     return;
   }
 
-  if (Utils.isNotEmptyString(viewIndex)) {
-    var viewScope = ViewManager.getViewScope(viewIndex, false);
+  if (!(viewStatus === ViewManager.VIEW_STATUS_LOADING)) {
+    var onViewHidden = viewHolder.getPropValueFromViewScope(View.ON_VIEW_HIDDEN);
 
-    if (!(viewStatus === ViewManager.VIEW_STATUS_LOADING) && !Utils.isNullOrUndefined(viewScope)) {
-      var onViewHidden = viewScope.onViewHidden;
+    if (!Utils.isNullOrUndefined(onViewHidden)) {
+      // 视图隐藏时调用
+      onViewHidden();
+    }
 
-      if (!Utils.isNullOrUndefined(onViewHidden)) {
-        // 视图隐藏时调用
-        onViewHidden();
-      }
+    if (pushMode) {
+      var onViewPush = viewHolder.getPropValueFromViewScope(View.ON_VIEW_PUSH);
 
-      if (pushMode) {
-        var onViewPush = viewScope.onViewPush;
-
-        if (!Utils.isNullOrUndefined(onViewPush)) {
-          onViewPush();
-        }
+      if (!Utils.isNullOrUndefined(onViewPush)) {
+        onViewPush();
       }
     }
   }
@@ -433,34 +413,6 @@ ViewManager.hiddenView = function (viewElement, pushMode) {
   jqView.css('display', 'none');
 };
 
-
-/**
- * @description 获取视图的 onViewClosing 函数
- * @param {jQuery} jqView 
- * @returns {function}
- */
-function getOnViewClosingFn(jqView) {
-  if (jqView.length <= 0) {
-    return null;
-  }
-
-  var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
-  if (!Utils.isNotEmptyString(viewIndex)) {
-    return null;
-  }
-
-  var viewScope = ViewManager.getViewScope(viewIndex, false);
-  if (Utils.isNullOrUndefined(viewScope)) {
-    return null;
-  }
-
-  var onViewClosing = viewScope.onViewClosing;
-  if (Utils.isNullOrUndefined(onViewClosing)) {
-    return null;
-  }
-
-  return onViewClosing;
-}
 
 /* SOURCE-CODE-END */
 
