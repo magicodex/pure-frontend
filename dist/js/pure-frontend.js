@@ -1113,10 +1113,7 @@ ViewManager.loadView = function (url) {
   var viewSelector = Utils.formatString('main[{0}="{1}"]',
     [Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex]);
   var jqView = jqViewParent.children(viewSelector);
-  var viewHolder = new ViewHolder(jqView);
-  var viewObject = viewHolder.getViewObject();
 
-  var onViewClosingFn = viewHolder.getPropValueFromViewScope(View.ON_VIEW_CLOSING);
   var doLoadViewFn = function () {
     // 加载新的视图
     ViewManager.doRenderView(url, function () {
@@ -1127,10 +1124,18 @@ ViewManager.loadView = function (url) {
     });
   };
 
-  if (Utils.isNullOrUndefined(onViewClosingFn)) {
-    doLoadViewFn();
+  if (jqView.length > 0) {
+    var viewHolder = new ViewHolder(jqView);
+    var onViewClosingFn = viewHolder.getPropValueFromViewScope(View.ON_VIEW_CLOSING);
+
+    if (Utils.isNullOrUndefined(onViewClosingFn)) {
+      doLoadViewFn();
+    } else {
+      var viewObject = viewHolder.getViewObject();
+      onViewClosingFn(viewObject, doLoadViewFn);
+    }
   } else {
-    onViewClosingFn(viewObject, doLoadViewFn);
+    doLoadViewFn();
   }
 };
 
@@ -1193,10 +1198,7 @@ ViewManager.popView = function (url) {
     [Global.config.tabIndexAttributeName,
     ViewManager.currentTab.tabIndex]);
   var jqView = jqViewParent.children(viewSelector);
-  var viewHolder = new ViewHolder(jqView);
-  var viewObject = viewHolder.getViewObject;
 
-  var onViewClosingFn = viewHolder.getPropValueFromViewScope(View.ON_VIEW_CLOSING);
   var doPopViewFn = function () {
     if (jqView.length >= 2) {
       // 结束当前视图的生命周期
@@ -1214,10 +1216,18 @@ ViewManager.popView = function (url) {
     }
   };
 
-  if (Utils.isNullOrUndefined(onViewClosingFn)) {
-    doPopViewFn();
+  if (jqView.length > 0) {
+    var viewHolder = new ViewHolder(jqView);
+    var onViewClosingFn = viewHolder.getPropValueFromViewScope(View.ON_VIEW_CLOSING);
+
+    if (Utils.isNullOrUndefined(onViewClosingFn)) {
+      doPopViewFn();
+    } else {
+      var viewObject = viewHolder.getViewObject;
+      onViewClosingFn(viewObject, doPopViewFn);
+    }
   } else {
-    onViewClosingFn(viewObject, doPopViewFn);
+    doPopViewFn();
   }
 };
 
