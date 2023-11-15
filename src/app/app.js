@@ -2,6 +2,7 @@
 
 import { Utils } from '../utils';
 import { ViewManager } from '../view/view-manager';
+import { ViewScopeManager } from '../view/view-scope-manager';
 import { AppAlertMessages } from './app-alert-messages';
 
 /* SOURCE-CODE-START */
@@ -27,7 +28,7 @@ App.viewScope = function (viewName, registerFn) {
     throw new Error('argument#1 "registerFn" required function');
   }
 
-  var viewScope = ViewManager.getViewScope(viewName);
+  var viewScope = ViewScopeManager.getViewScope(viewName);
   // 调用回调函数初始作用域
   registerFn(viewScope);
 };
@@ -46,7 +47,7 @@ App.viewMain = function (viewName, mainFn) {
     throw new Error('argument#1 "mainFn" required function');
   }
 
-  var viewScope = ViewManager.getViewScope(viewName);
+  var viewScope = ViewScopeManager.getViewScope(viewName);
   // 设置主函数
   viewScope.main = mainFn;
 };

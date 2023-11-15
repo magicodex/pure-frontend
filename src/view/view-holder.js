@@ -2,7 +2,7 @@
 
 import jQuery from 'jquery';
 import { Utils } from '../utils';
-import { ViewManager } from './view-manager';
+import { ViewScopeManager } from './view-scope-manager';
 import { Global } from '../global';
 
 /* SOURCE-CODE-START */
@@ -66,7 +66,7 @@ ViewHolder.prototype.getViewScope = function () {
     throw new Error(errorMessage);
   }
 
-  var viewScope = ViewManager.getViewScope(viewIndex, true);
+  var viewScope = ViewScopeManager.getViewScope(viewIndex, true);
 
   return viewScope;
 };

@@ -4,6 +4,7 @@ import jQuery from 'jquery';
 import { Utils } from '../utils';
 import { View } from './view';
 import { ViewHolder } from './view-holder';
+import { ViewScopeManager } from './view-scope-manager';
 import { ViewLoader } from './view-loader';
 import { Global } from '../global';
 import { BrowserUrl } from '../helper/browser-url';
@@ -19,7 +20,6 @@ function ViewManager() {
   //
 }
 
-ViewManager.viewScopes = {};
 ViewManager.currentTab = { tabIndex: 'default' };
 ViewManager.sequenceGenerator = new SequenceGenerator(100001);
 ViewManager.appSelector = '.pure-app';
@@ -28,54 +28,6 @@ ViewManager.VIEW_STATUS_LOADING = 'loading';
 ViewManager.VIEW_STATUS_SHOW = 'show';
 ViewManager.VIEW_STATUS_HIDDEN = 'hidden';
 ViewManager.VIEW_STATUS_DESTROY = 'destroy';
-
-/**
- * @description 返回指定的视图作用域
- * @param {string} viewName 视图名
- * @param {boolean} [allowCreate=true]
- * @returns {object}
- */
-ViewManager.getViewScope = function (viewName, allowCreate) {
-  if (!Utils.isString(viewName)) {
-    throw new Error('argument#0 "viewName" required string');
-  }
-
-  allowCreate = !(allowCreate === false);
-  var viewScope = ViewManager.viewScopes[viewName];
-
-  if (Utils.isNullOrUndefined(viewScope) && allowCreate) {
-    viewScope = {};
-    ViewManager.viewScopes[viewName] = viewScope;
-  }
-
-  return viewScope;
-};
-
-/**
- * @description 设置指定的视图作用域
- * @param {string} viewName 视图名
- * @param {object} viewScope
- */
-ViewManager.setViewScope = function (viewName, viewScope) {
-  if (!Utils.isString(viewName)) {
-    throw new Error('argument#0 "viewName" required string');
-  }
-
-  ViewManager.viewScopes[viewName] = viewScope;
-};
-
-
-/**
- * @description 移除指定的视图作用域
- * @param {string} viewName 视图名
- */
-ViewManager.removeViewScope = function (viewName) {
-  if (!Utils.isString(viewName)) {
-    throw new Error('argument#0 "viewName" required string');
-  }
-
-  delete ViewManager.viewScopes[viewName];
-};
 
 /**
  * @description 加载视图
@@ -240,8 +192,8 @@ ViewManager.doRenderView = function (url, afterRenderFn) {
 
     // 修改视图作用域的名称以支持同时加载多个相同的视图
     if (!Utils.isNullOrUndefined(viewScope)) {
-      ViewManager.setViewScope(viewIndex, viewScope);
-      ViewManager.removeViewScope(viewName);
+      ViewScopeManager.setViewScope(viewIndex, viewScope);
+      ViewScopeManager.removeViewScope(viewName);
     }
 
     if (!Utils.isNullOrUndefined(afterRenderFn)) {

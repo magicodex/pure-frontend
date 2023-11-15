@@ -8,6 +8,7 @@ import { BrowserTitle } from './helper/browser-title';
 import { View } from './view/view';
 import { ViewInfo } from './view/view-info';
 import { ViewResponse } from './view/view-response';
+import { ViewScopeManager } from './view/view-scope-manager';
 import { ViewHolder } from './view/view-holder';
 import { ViewLoader } from './view/view-loader';
 import { ViewManager } from './view/view-manager';
@@ -40,6 +41,7 @@ var Pure = {
     View: View,
     ViewInfo: ViewInfo,
     ViewResponse: ViewResponse,
+    ViewScopeManager: ViewScopeManager,
     ViewHolder: ViewHolder,
     ViewLoader: ViewLoader,
     ViewManager: ViewManager,

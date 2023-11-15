@@ -13,6 +13,7 @@ export const config: {
     viewIndexAttributeName: string;
     viewStatusAttributeName: string;
     viewUrlAttributeName: string;
+    viewTitleAttributeName: string;
 };
 
 export const messages: {
@@ -151,6 +152,26 @@ export namespace fn {
 
     }
 
+    class ViewHolder {
+        constructor();
+
+        getViewObject(): View;
+
+        getViewScope(): any;
+
+        setViewToShow(): void;
+
+        setViewToHide(): void;
+
+        getPropValueFromViewScope(propName: any): any;
+
+        setPropValueToViewScope(propName: any, propValue: any): void;
+
+        getAttrValueFromTagElement(attrName: any): any;
+
+        setAttrValueToTagElement(attrName: any, attrValue: any): void;
+    }
+
     class ViewLoader {
         constructor(targetElement: any, callbackFn: any);
 
@@ -206,6 +227,8 @@ export namespace fn {
     function Utils(): void;
 
     function ViewManager(): void;
+
+    function ViewScopeManager(): void;
 
     namespace Ajax {
         function callService(url: any, data: any, opts: any): AjaxResult;
@@ -333,8 +356,6 @@ export namespace fn {
 
         function doRenderView(url: any, afterRenderFn: any): void;
 
-        function getViewScope(viewName: any, allowCreate: boolean): any;
-
         function startViewLifecycle(viewElement: any): void;
 
         function loadView(url: any): void;
@@ -347,16 +368,25 @@ export namespace fn {
 
         function pushView(url: any): void;
 
-        function removeViewScope(viewName: any): void;
-
         function showView(viewElement: any): void;
-
-        function setViewScope(viewName: any, viewScope: any): void;
 
         namespace sequenceGenerator {
             function nextValue(): any;
 
         }
+
+    }
+
+    namespace ViewScopeManager {
+
+        const viewScopes: {
+        };
+
+        function getViewScope(viewName: any, allowCreate: boolean): any;
+
+        function removeViewScope(viewName: any): void;
+
+        function setViewScope(viewName: any, viewScope: any): void;
 
     }
 
