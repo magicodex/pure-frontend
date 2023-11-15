@@ -226,7 +226,7 @@ ViewManager.startViewLifecycle = function (viewElement) {
   if (viewStatus === ViewManager.VIEW_STATUS_DESTROY) {
     var viewIndex = viewHolder.getAttrValueFromTagElement(Global.config.viewIndexAttributeName);
     // 移除该视图对应的作用域
-    ViewManager.removeViewScope(viewIndex);
+    ViewScopeManager.removeViewScope(viewIndex);
 
     return;
   }
@@ -277,7 +277,7 @@ ViewManager.stopViewLifecycle = function (viewElement) {
 
     var viewIndex = viewHolder.getAttrValueFromTagElement(Global.config.viewIndexAttributeName);
     // 移除该视图对应的作用域
-    ViewManager.removeViewScope(viewIndex);
+    ViewScopeManager.removeViewScope(viewIndex);
   }
 
   viewHolder.setAttrValueToTagElement(Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_DESTROY);

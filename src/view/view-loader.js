@@ -2,7 +2,7 @@
 
 import jQuery from 'jquery';
 import { Utils } from '../utils';
-import { ViewManager } from './view-manager';
+import { ViewScopeManager } from './view-scope-manager';
 import { SequenceGenerator } from '../helper/sequence-generator';
 import { View } from './view';
 import { ViewResponse } from './view-response';
@@ -114,7 +114,7 @@ ViewLoader.prototype.renderView = function (url, data, textStatus, jqXHR) {
   // 执行初始逻辑
   this.initViewAfterRender();
 
-  var viewScope = ViewManager.getViewScope(viewName);
+  var viewScope = ViewScopeManager.getViewScope(viewName);
   viewScope = Utils.emptyObjectIfNullOrUndefined(viewScope);
   var view = new View(this._targetElement, viewInfo, viewScope);
   viewScope.VIEW = view;

@@ -95,11 +95,11 @@ export namespace fn {
     class AjaxResult {
         constructor(deferred: any, sourceElement: any);
 
-        doHandleResult(doneFn: any, failFn: any, showMask: any): any;
+        doHandleResult(doneFn: any, failFn: any, showMask: any): AjaxResult;
 
-        thenResult(doneFn: any, failFn: any): any;
+        thenResult(doneFn: any, failFn: any): AjaxResult;
 
-        waitResult(doneFn: any, failFn: any): any;
+        waitResult(doneFn: any, failFn: any): AjaxResult;
 
         static handleAjaxError(sourceElement: any, jqXHR: any, textStatus: any, errorThrown: any): void;
 

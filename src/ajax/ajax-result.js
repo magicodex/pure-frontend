@@ -24,7 +24,7 @@ function AjaxResult(deferred, sourceElement) {
  * @description 处理调用结果
  * @param {function} doneFn 
  * @param {function} failFn 
- * @returns {jQuery.Deferred}
+ * @returns {AjaxResult}
  */
 AjaxResult.prototype.thenResult = function (doneFn, failFn) {
   return this.doHandleResult(doneFn, failFn, false);
@@ -34,7 +34,7 @@ AjaxResult.prototype.thenResult = function (doneFn, failFn) {
  * @description 处理调用结果
  * @param {function} doneFn 
  * @param {function} failFn 
- * @returns {jQuery.Deferred}
+ * @returns {AjaxResult}
  */
 AjaxResult.prototype.waitResult = function (doneFn, failFn) {
   return this.doHandleResult(doneFn, failFn, true);
@@ -45,7 +45,7 @@ AjaxResult.prototype.waitResult = function (doneFn, failFn) {
  * @param {function} doneFn 
  * @param {function} failFn 
  * @param {boolean} showMask 
- * @returns {jQuery.Deferred}
+ * @returns {AjaxResult}
  */
 AjaxResult.prototype.doHandleResult = function (doneFn, failFn, showMask) {
   if (!Utils.isFunction(doneFn)) {
@@ -83,11 +83,11 @@ AjaxResult.prototype.doHandleResult = function (doneFn, failFn, showMask) {
         failFn(deferred, 'error', '');
       }
     }
-
-    return deferred;
   } else {
-    return deferred.then(doneFn, failFn);
+    deferred.then(doneFn, failFn);
   }
+
+  return this;
 };
 
 /**

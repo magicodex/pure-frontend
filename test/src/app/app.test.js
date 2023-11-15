@@ -4,6 +4,7 @@
 QUnit.module('App', function () {
   var App = Pure.fn.App;
   var ViewManager = Pure.fn.ViewManager;
+  var ViewScopeManager = Pure.fn.ViewScopeManager;
 
   QUnit.test('test', function (assert) {
     try {
@@ -16,12 +17,12 @@ QUnit.module('App', function () {
         //
       });
 
-      var viewScope = ViewManager.viewScopes['viewName1'];
+      var viewScope = ViewScopeManager.viewScopes['viewName1'];
       assert.strictEqual(viewScope.field1, 'value1');
       assert.strictEqual(viewScope.field2, 'value2');
       assert.strictEqual((typeof viewScope.main), 'function');
     } finally {
-      ViewManager.viewScopes = {};
+      ViewScopeManager.viewScopes = {};
     }
   });
 

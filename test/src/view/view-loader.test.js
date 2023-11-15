@@ -5,7 +5,7 @@ QUnit.module('ViewLoader', function () {
   var ViewLoader = Pure.fn.ViewLoader;
   var Global = Pure.fn.Global;
   var BrowserUrl = Pure.fn.BrowserUrl;
-  var ViewManager = Pure.fn.ViewManager;
+  var ViewScopeManager = Pure.fn.ViewScopeManager;
   var SequenceGenerator = Pure.fn.SequenceGenerator;
 
   QUnit.test('test', function (assert) {
@@ -26,7 +26,7 @@ QUnit.module('ViewLoader', function () {
       // 重置上下文
       ViewLoader.sequenceGenerator = new SequenceGenerator(100001);
       ViewLoader.lastViewInfo = {};
-      ViewManager.viewScopes = {
+      ViewScopeManager.viewScopes = {
         'viewName1': {
           main: function (scope, view) {
             mainFnCalledFlag = true;
@@ -71,7 +71,7 @@ QUnit.module('ViewLoader', function () {
     } finally {
       ViewLoader.lastViewInfo = {};
       ViewLoader.sequenceGenerator = new SequenceGenerator(100001);
-      ViewManager.viewScopes = {};
+      ViewScopeManager.viewScopes = {};
       BrowserUrl.setLocationUrl = oldSetLocationUrl;
     }
   });

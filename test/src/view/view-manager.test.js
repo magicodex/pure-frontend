@@ -7,46 +7,9 @@ QUnit.module('ViewManager', function () {
   var BrowserUrl = Pure.fn.BrowserUrl;
   var ViewLoader = Pure.fn.ViewLoader;
   var SequenceGenerator = Pure.fn.SequenceGenerator;
-
-  QUnit.test('getViewScope', function (assert) {
-    try {
-      var actual1 = ViewManager.getViewScope('viewName1', false);
-      assert.strictEqual(actual1, undefined);
-
-      var actual2 = ViewManager.getViewScope('viewName1');
-      assert.deepEqual(actual2, {});
-    } finally {
-      ViewManager.viewScopes = {};
-    }
-  });
-
-  QUnit.test('setViewScope', function (assert) {
-    try {
-      assert.strictEqual(ViewManager.viewScopes['viewName1'], undefined);
-
-      ViewManager.setViewScope('viewName1', { 'key1': 'value1' });
-      assert.deepEqual(ViewManager.viewScopes['viewName1'], {
-        'key1': 'value1'
-      });
-    } finally {
-      ViewManager.viewScopes = {};
-    }
-  });
-
-  QUnit.test('removeViewScope', function (assert) {
-    try {
-      ViewManager.viewScopes = {
-        'viewName1': {
-          'key1': 'value1'
-        }
-      };
-
-      ViewManager.removeViewScope('viewName1');
-      assert.deepEqual(ViewManager.viewScopes, {});
-    } finally {
-      ViewManager.viewScopes = {};
-    }
-  });
+  var ViewScopeManager = Pure.fn.ViewScopeManager;
+  var View = Pure.fn.View;
+  var ViewInfo = Pure.fn.ViewInfo;
 
   QUnit.test('doRenderView', function (assert) {
     var jqTest = $('#qunit-fixture');
@@ -60,7 +23,7 @@ QUnit.module('ViewManager', function () {
       ViewLoader.sequenceGenerator = new SequenceGenerator(100001);
       ViewLoader.lastViewInfo = {};
       ViewManager.sequenceGenerator = new SequenceGenerator(100001);
-      ViewManager.viewScopes = {
+      ViewScopeManager.viewScopes = {
         'viewName1': {
           'field1': 'value1',
           'field2': 'value2'
@@ -93,8 +56,12 @@ QUnit.module('ViewManager', function () {
       // 调用方法
       ViewManager.doRenderView('/url/100001');
 
+
+      var viewScope = ViewScopeManager.viewScopes['viewName1_100001'];
+      assert.ok(viewScope.VIEW != null);
+      delete viewScope.VIEW;
       // 检查调整后的视图作用域的名称
-      assert.deepEqual(ViewManager.viewScopes, {
+      assert.deepEqual(ViewScopeManager.viewScopes, {
         'viewName1_100001': {
           'field1': 'value1',
           'field2': 'value2'
@@ -108,7 +75,7 @@ QUnit.module('ViewManager', function () {
     } finally {
       ViewLoader.prototype.loadView = oldLoadView;
       BrowserUrl.setLocationUrl = oldSetLocationUrl;
-      ViewManager.viewScopes = {};
+      ViewScopeManager.viewScopes = {};
       ViewManager.sequenceGenerator = new SequenceGenerator(100001);
       ViewLoader.lastViewInfo = {};
       ViewLoader.sequenceGenerator = new SequenceGenerator(100001);
@@ -130,11 +97,14 @@ QUnit.module('ViewManager', function () {
 
     try {
       var onViewLifecycleStartCalledFlag = false;
-      ViewManager.viewScopes['viewName1'] = {
+      var viewScope = {
         onViewLifecycleStart: function () {
           onViewLifecycleStartCalledFlag = true;
         }
       };
+
+      populateViewScope(viewScope, jqNewView);
+      ViewScopeManager.viewScopes['viewName1'] = viewScope;
 
       // 避免浏览器跳转
       BrowserUrl.setLocationUrl = function (newUrl) {
@@ -150,7 +120,7 @@ QUnit.module('ViewManager', function () {
       // 检查跳转的 URL
       assert.strictEqual(newLocationUrl, '/#/url/100001');
     } finally {
-      ViewManager.viewScopes = {};
+      ViewScopeManager.viewScopes = {};
       BrowserUrl.setLocationUrl = oldSetLocationUrl;
     }
   });
@@ -166,11 +136,14 @@ QUnit.module('ViewManager', function () {
 
     try {
       var onViewLifecycleStopCalledFlag = false;
-      ViewManager.viewScopes['viewName1'] = {
+      var viewScope = {
         onViewLifecycleStop: function () {
           onViewLifecycleStopCalledFlag = true;
         }
       };
+
+      populateViewScope(viewScope, jqNewView);
+      ViewScopeManager.viewScopes['viewName1'] = viewScope;
 
       assert.strictEqual(jqTest.find('.pure-view').length, 1);
       // 调用方法
@@ -180,7 +153,7 @@ QUnit.module('ViewManager', function () {
       assert.strictEqual(jqNewView.attr(Global.config.viewStatusAttributeName), 'destroy');
       assert.strictEqual(onViewLifecycleStopCalledFlag, true);
     } finally {
-      ViewManager.viewScopes = {};
+      ViewScopeManager.viewScopes = {};
     }
   });
 
@@ -199,11 +172,14 @@ QUnit.module('ViewManager', function () {
 
     try {
       var onViewShowCalledFlag = false;
-      ViewManager.viewScopes['viewName1'] = {
+      var viewScope = {
         onViewShow: function () {
           onViewShowCalledFlag = true;
         }
       };
+
+      populateViewScope(viewScope, jqNewView);
+      ViewScopeManager.viewScopes['viewName1'] = viewScope;
 
       // 避免浏览器跳转
       BrowserUrl.setLocationUrl = function (newUrl) {
@@ -219,7 +195,7 @@ QUnit.module('ViewManager', function () {
       // 检查跳转的 URL
       assert.strictEqual(newLocationUrl, '/#/url/100001');
     } finally {
-      ViewManager.viewScopes = {};
+      ViewScopeManager.viewScopes = {};
       BrowserUrl.setLocationUrl = oldSetLocationUrl;
     }
   });
@@ -235,11 +211,14 @@ QUnit.module('ViewManager', function () {
 
     try {
       var onViewHiddenCalledFlag = false;
-      ViewManager.viewScopes['viewName1'] = {
+      var viewScope = {
         onViewHidden: function () {
           onViewHiddenCalledFlag = true;
         }
       };
+
+      populateViewScope(viewScope, jqNewView);
+      ViewScopeManager.viewScopes['viewName1'] = viewScope;
 
       // 调用方法
       ViewManager.hiddenView(jqNewView[0]);
@@ -248,9 +227,21 @@ QUnit.module('ViewManager', function () {
       assert.strictEqual(jqNewView.attr(Global.config.viewStatusAttributeName), 'hidden');
       assert.strictEqual(jqNewView.css('display'), 'none');
     } finally {
-      ViewManager.viewScopes = {};
+      ViewScopeManager.viewScopes = {};
     }
   });
+
+  /**
+   * @param {*} viewScope 
+   */
+  function populateViewScope(viewScope, jqNewView) {
+    var viewInfo = new ViewInfo();
+    viewInfo.setFullUrl('/url/100001');
+    viewInfo.setUrlPattern('/url/{id}');
+
+    var view = new View(jqNewView[0], viewInfo, viewScope);
+    viewScope.VIEW = view;
+  }
 
 });
 

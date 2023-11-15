@@ -517,6 +517,14 @@ function View(viewElement, viewInfo, viewScope) {
   this._urlParams = UrlParser.parseAllParams(fullUrl, urlPattern);
 }
 
+View.ON_VIEW_LIFECYCLE_START = 'onViewLifecycleStart';
+View.ON_VIEW_LIFECYCLE_STOP = 'onViewLifecycleStop';
+View.ON_VIEW_SHOW = 'onViewShow';
+View.ON_VIEW_HIDDEN = 'onViewHidden';
+View.ON_VIEW_PUSH = 'onViewPush';
+View.ON_VIEW_POP = 'onViewPop';
+View.ON_VIEW_CLOSING = 'onViewClosing';
+
 /**
  * @description 返回视图元素
  * @returns {(Document|Element)}
@@ -720,6 +728,204 @@ ViewResponse.prototype.getViewInfo = function () {
 
 
 /**
+ * 视图作用域管理器
+ * @class
+ */
+function ViewScopeManager() {
+  //
+}
+
+ViewScopeManager.viewScopes = {};
+
+/**
+ * @description 返回指定的视图作用域
+ * @param {string} viewName 视图名
+ * @param {boolean} [allowCreate=true]
+ * @returns {object}
+ */
+ViewScopeManager.getViewScope = function (viewName, allowCreate) {
+  if (!Utils.isString(viewName)) {
+    throw new Error('argument#0 "viewName" required string');
+  }
+
+  allowCreate = !(allowCreate === false);
+  var viewScope = ViewScopeManager.viewScopes[viewName];
+
+  if (Utils.isNullOrUndefined(viewScope) && allowCreate) {
+    viewScope = {};
+    ViewScopeManager.viewScopes[viewName] = viewScope;
+  }
+
+  return viewScope;
+};
+
+/**
+ * @description 设置指定的视图作用域
+ * @param {string} viewName 视图名
+ * @param {object} viewScope
+ */
+ViewScopeManager.setViewScope = function (viewName, viewScope) {
+  if (!Utils.isString(viewName)) {
+    throw new Error('argument#0 "viewName" required string');
+  }
+
+  ViewScopeManager.viewScopes[viewName] = viewScope;
+};
+
+
+/**
+ * @description 移除指定的视图作用域
+ * @param {string} viewName 视图名
+ */
+ViewScopeManager.removeViewScope = function (viewName) {
+  if (!Utils.isString(viewName)) {
+    throw new Error('argument#0 "viewName" required string');
+  }
+
+  delete ViewScopeManager.viewScopes[viewName];
+};
+
+
+
+
+
+/**
+ * @class
+ * @param {(jQuery|Element)} view 
+ */
+function ViewHolder(view) {
+  var jqView;
+
+  if (view instanceof jQuery) {
+    if (view.length <= 0) {
+      throw new Error('argument#0 "view" is empty');
+    }
+
+    jqView = view;
+  } else if (view instanceof Element) {
+    jqView = jQuery(view);
+  } else {
+    var errorFormat = 'not support argument#0 "view" type "{0}"';
+    var valueType = (typeof view);
+    var errorMessage = Utils.formatString(errorFormat, [valueType]);
+
+    throw new Error(errorMessage);
+  }
+
+  this._jqView = jqView;
+}
+
+/**
+ * @description 获取对应的视图对象
+ * @returns {View}
+ */
+ViewHolder.prototype.getViewObject = function () {
+  var viewScope = this.getViewScope();
+  if (Utils.isNullOrUndefined(viewScope)) {
+    throw new Error('viewScope null/undefined');
+  }
+
+  var viewObject = viewScope.VIEW;
+  if (Utils.isNullOrUndefined(viewObject)) {
+    throw new Error('viewScope.VIEW null/undefined');
+  }
+
+  return viewObject;
+};
+
+/**
+ * @description 获取视图作用域对象
+ * @returns {PlainObject}
+ */
+ViewHolder.prototype.getViewScope = function () {
+  var viewIndex = this.getAttrValueFromTagElement(Global.config.viewIndexAttributeName);
+
+  if (Utils.isNullOrUndefined(viewIndex)) {
+    var idValue = this.getAttrValueFromTagElement('id');
+    var errorFormat = 'not found the dom(id={0}) attribute "{1}"';
+    var errorMessage = Utils.formatString(errorFormat, [idValue, Global.config.viewIndexAttributeName]);
+
+    throw new Error(errorMessage);
+  }
+
+  var viewScope = ViewScopeManager.getViewScope(viewIndex, true);
+
+  return viewScope;
+};
+
+/**
+ * @description 设置视图成可见
+ */
+ViewHolder.prototype.setViewToShow = function () {
+  this._jqView.css('display', 'block');
+};
+
+/**
+ * @description 设置视图成隐藏
+ */
+ViewHolder.prototype.setViewToHide = function () {
+  this._jqView.css('display', 'none');
+};
+
+/**
+ * @description 获取视图作用域对象的指定属性
+ * @param {string} propName 
+ * @returns {*}
+ */
+ViewHolder.prototype.getPropValueFromViewScope = function (propName) {
+  if (!Utils.isString(propName)) {
+    throw new Error('argument#0 "propName" required string');
+  }
+
+  var viewScope = this.getViewScope();
+  if (Utils.isNullOrUndefined(viewScope)) {
+    throw new Error('viewScope null/undefined');
+  }
+
+  var propValue = viewScope[propName];;
+
+  return propValue;
+};
+
+/**
+ * @description 设置视图作用域对象的指定属性
+ * @param {string} propName 
+ * @param {*} propValue
+ */
+ViewHolder.prototype.setPropValueToViewScope = function (propName, propValue) {
+  if (!Utils.isString(propName)) {
+    throw new Error('argument#0 "propName" required string');
+  }
+
+  var viewScope = this.getViewScope();
+  if (Utils.isNullOrUndefined(viewScope)) {
+    throw new Error('viewScope null/undefined');
+  }
+
+  viewScope[propName] = propValue;
+};
+
+/**
+ * @description 获取标签元素的指定属性
+ * @param {string} attrName 
+ */
+ViewHolder.prototype.getAttrValueFromTagElement = function (attrName) {
+  return this._jqView.attr(attrName);
+};
+
+/**
+ * @description 设置标签元素的指定属性
+ * @param {string} attrName 
+ * @param {*} attrValue 
+ */
+ViewHolder.prototype.setAttrValueToTagElement = function (attrName, attrValue) {
+  this._jqView.attr(attrName, attrValue);
+};
+
+
+
+
+/**
  * 视图加载器
  * @class
  * @param {(Document|Element)} targetElement 
@@ -759,19 +965,28 @@ ViewLoader.prototype.loadView = function (url) {
     try {
       // 判断是否需要渲染视图
       if (!viewLoader.preRenderView(url, data, textStatus, jqXHR)) {
-        viewLoader._callbackFn(false);
+        if (!Utils.isNullOrUndefined(viewLoader._callbackFn)) {
+          viewLoader._callbackFn(false);
+        }
+
         return;
       }
 
       // 渲染视图
       viewLoader.renderView(url, data, textStatus, jqXHR);
     } catch (error) {
-      console.error(error.message);
-      viewLoader._callbackFn(false);
+      console.error(error);
+
+      if (!Utils.isNullOrUndefined(viewLoader._callbackFn)) {
+        viewLoader._callbackFn(false);
+      }
     }
   }).fail(function (jqXHR, textStatus, errorThrown) {
     AjaxResult.handleAjaxError(null, jqXHR, textStatus, errorThrown);
-    viewLoader._callbackFn(false);
+
+    if (!Utils.isNullOrUndefined(viewLoader._callbackFn)) {
+      viewLoader._callbackFn(false);
+    }
   });
 };
 
@@ -807,14 +1022,17 @@ ViewLoader.prototype.renderView = function (url, data, textStatus, jqXHR) {
   jqElement.attr('id', viewName);
   // 渲染视图
   jqElement.html(data);
+  // 添加自定义属性
   jqElement.attr(Global.config.viewUrlAttributeName, url);
   jqElement.attr(Global.config.viewTitleAttributeName, viewTitle);
   // 执行初始逻辑
   this.initViewAfterRender();
 
-  var viewScope = ViewManager.getViewScope(viewName);
+  var viewScope = ViewScopeManager.getViewScope(viewName);
+  viewScope = Utils.emptyObjectIfNullOrUndefined(viewScope);
   var view = new View(this._targetElement, viewInfo, viewScope);
-  ViewLoader.lastViewInfo.viewScope = Utils.emptyObjectIfNullOrUndefined(viewScope);
+  viewScope.VIEW = view;
+  ViewLoader.lastViewInfo.viewScope = viewScope;
   ViewLoader.lastViewInfo.view = view;
 
   if (!Utils.isNullOrUndefined(viewScope)) {
@@ -867,11 +1085,6 @@ function ViewManager() {
   //
 }
 
-ViewManager.privateFn = {
-  getOnViewClosingFn: getOnViewClosingFn
-};
-
-ViewManager.viewScopes = {};
 ViewManager.currentTab = { tabIndex: 'default' };
 ViewManager.sequenceGenerator = new SequenceGenerator(100001);
 ViewManager.appSelector = '.pure-app';
@@ -880,54 +1093,6 @@ ViewManager.VIEW_STATUS_LOADING = 'loading';
 ViewManager.VIEW_STATUS_SHOW = 'show';
 ViewManager.VIEW_STATUS_HIDDEN = 'hidden';
 ViewManager.VIEW_STATUS_DESTROY = 'destroy';
-
-/**
- * @description 返回指定的视图作用域
- * @param {string} viewName 视图名
- * @param {boolean} [allowCreate=true]
- * @returns {object}
- */
-ViewManager.getViewScope = function (viewName, allowCreate) {
-  if (!Utils.isString(viewName)) {
-    throw new Error('argument#0 "viewName" required string');
-  }
-
-  allowCreate = !(allowCreate === false);
-  var viewScope = ViewManager.viewScopes[viewName];
-
-  if (Utils.isNullOrUndefined(viewScope) && allowCreate) {
-    viewScope = {};
-    ViewManager.viewScopes[viewName] = viewScope;
-  }
-
-  return viewScope;
-};
-
-/**
- * @description 设置指定的视图作用域
- * @param {string} viewName 视图名
- * @param {object} viewScope
- */
-ViewManager.setViewScope = function (viewName, viewScope) {
-  if (!Utils.isString(viewName)) {
-    throw new Error('argument#0 "viewName" required string');
-  }
-
-  ViewManager.viewScopes[viewName] = viewScope;
-};
-
-
-/**
- * @description 移除指定的视图作用域
- * @param {string} viewName 视图名
- */
-ViewManager.removeViewScope = function (viewName) {
-  if (!Utils.isString(viewName)) {
-    throw new Error('argument#0 "viewName" required string');
-  }
-
-  delete ViewManager.viewScopes[viewName];
-};
 
 /**
  * @description 加载视图
@@ -942,8 +1107,10 @@ ViewManager.loadView = function (url) {
   var viewSelector = Utils.formatString('main[{0}="{1}"]',
     [Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex]);
   var jqView = jqViewParent.children(viewSelector);
+  var viewHolder = new ViewHolder(jqView);
+  var viewObject = viewHolder.getViewObject();
 
-  var onViewClosingFn = getOnViewClosingFn(jqView);
+  var onViewClosingFn = viewHolder.getPropValueFromViewScope(View.ON_VIEW_CLOSING);
   var doLoadViewFn = function () {
     // 加载新的视图
     ViewManager.doRenderView(url, function () {
@@ -957,7 +1124,7 @@ ViewManager.loadView = function (url) {
   if (Utils.isNullOrUndefined(onViewClosingFn)) {
     doLoadViewFn();
   } else {
-    onViewClosingFn(doLoadViewFn);
+    onViewClosingFn(viewObject, doLoadViewFn);
   }
 };
 
@@ -1020,8 +1187,10 @@ ViewManager.popView = function (url) {
     [Global.config.tabIndexAttributeName,
     ViewManager.currentTab.tabIndex]);
   var jqView = jqViewParent.children(viewSelector);
+  var viewHolder = new ViewHolder(jqView);
+  var viewObject = viewHolder.getViewObject;
 
-  var onViewClosingFn = getOnViewClosingFn(jqView);
+  var onViewClosingFn = viewHolder.getPropValueFromViewScope(View.ON_VIEW_CLOSING);
   var doPopViewFn = function () {
     if (jqView.length >= 2) {
       // 结束当前视图的生命周期
@@ -1042,7 +1211,7 @@ ViewManager.popView = function (url) {
   if (Utils.isNullOrUndefined(onViewClosingFn)) {
     doPopViewFn();
   } else {
-    onViewClosingFn(doPopViewFn);
+    onViewClosingFn(viewObject, doPopViewFn);
   }
 };
 
@@ -1088,8 +1257,8 @@ ViewManager.doRenderView = function (url, afterRenderFn) {
 
     // 修改视图作用域的名称以支持同时加载多个相同的视图
     if (!Utils.isNullOrUndefined(viewScope)) {
-      ViewManager.setViewScope(viewIndex, viewScope);
-      ViewManager.removeViewScope(viewName);
+      ViewScopeManager.setViewScope(viewIndex, viewScope);
+      ViewScopeManager.removeViewScope(viewName);
     }
 
     if (!Utils.isNullOrUndefined(afterRenderFn)) {
@@ -1114,28 +1283,23 @@ ViewManager.startViewLifecycle = function (viewElement) {
   }
 
   var jqView = jQuery(viewElement);
-  var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
-  var tabIndex = jqView.attr(Global.config.tabIndexAttributeName);
-  var viewStatus = jqView.attr(Global.config.viewStatusAttributeName);
+  var viewHolder = new ViewHolder(jqView);
+  var viewObject = viewHolder.getViewObject();
+  var tabIndex = viewHolder.getAttrValueFromTagElement(Global.config.tabIndexAttributeName);
+  var viewStatus = viewHolder.getAttrValueFromTagElement(Global.config.viewStatusAttributeName);
 
   if (viewStatus === ViewManager.VIEW_STATUS_DESTROY) {
+    var viewIndex = viewHolder.getAttrValueFromTagElement(Global.config.viewIndexAttributeName);
     // 移除该视图对应的作用域
-    ViewManager.removeViewScope(viewIndex);
+    ViewScopeManager.removeViewScope(viewIndex);
 
     return;
   }
 
-  if (Utils.isNotEmptyString(viewIndex)) {
-    var viewScope = ViewManager.getViewScope(viewIndex, false);
-
-    if (!Utils.isNullOrUndefined(viewScope)) {
-      var onViewLifecycleStart = viewScope.onViewLifecycleStart;
-
-      if (!Utils.isNullOrUndefined(onViewLifecycleStart)) {
-        // 视图生命周期开启时调用
-        onViewLifecycleStart();
-      }
-    }
+  var onViewLifecycleStart = viewHolder.getPropValueFromViewScope(View.ON_VIEW_LIFECYCLE_START);
+  if (!Utils.isNullOrUndefined(onViewLifecycleStart)) {
+    // 视图生命周期开启时调用
+    onViewLifecycleStart(viewObject);
   }
 
   if (tabIndex === ViewManager.currentTab.tabIndex) {
@@ -1160,30 +1324,28 @@ ViewManager.stopViewLifecycle = function (viewElement) {
   ViewManager.hiddenView(viewElement);
 
   var jqView = jQuery(viewElement);
-  var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
-  var viewStatus = jqView.attr(Global.config.viewStatusAttributeName);
+  var viewHolder = new ViewHolder(jqView);
+  var viewObject = viewHolder.getViewObject();
+  var viewStatus = viewHolder.getAttrValueFromTagElement(Global.config.viewStatusAttributeName);
 
   if (!(viewStatus === ViewManager.VIEW_STATUS_HIDDEN || viewStatus === ViewManager.VIEW_STATUS_LOADING)) {
     return;
   }
 
-  if (Utils.isNotEmptyString(viewIndex)) {
-    var viewScope = ViewManager.getViewScope(viewIndex, false);
+  if (!(viewStatus === ViewManager.VIEW_STATUS_LOADING)) {
+    var onViewLifecycleStop = viewHolder.getPropValueFromViewScope(View.ON_VIEW_LIFECYCLE_STOP);
 
-    if (!(viewStatus === ViewManager.VIEW_STATUS_LOADING) && !Utils.isNullOrUndefined(viewScope)) {
-      var onViewLifecycleStop = viewScope.onViewLifecycleStop;
-
-      if (!Utils.isNullOrUndefined(onViewLifecycleStop)) {
-        // 视图生命周期结束时调用
-        onViewLifecycleStop();
-      }
-
-      // 移除该视图对应的作用域
-      ViewManager.removeViewScope(viewIndex);
+    if (!Utils.isNullOrUndefined(onViewLifecycleStop)) {
+      // 视图生命周期结束时调用
+      onViewLifecycleStop(viewObject);
     }
+
+    var viewIndex = viewHolder.getAttrValueFromTagElement(Global.config.viewIndexAttributeName);
+    // 移除该视图对应的作用域
+    ViewScopeManager.removeViewScope(viewIndex);
   }
 
-  jqView.attr(Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_DESTROY);
+  viewHolder.setAttrValueToTagElement(Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_DESTROY);
   // 移除该视图对应的 DOM 元素
   jqView.remove();
 };
@@ -1200,40 +1362,34 @@ ViewManager.showView = function (viewElement, popMode) {
 
   popMode = (popMode === true);
   var jqView = jQuery(viewElement);
-  var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
-  var viewStatus = jqView.attr(Global.config.viewStatusAttributeName);
+  var viewHolder = new ViewHolder(jqView);
+  var viewObject = viewHolder.getViewObject();
+  var viewStatus = viewHolder.getAttrValueFromTagElement(Global.config.viewStatusAttributeName);
 
   if (!(viewStatus === ViewManager.VIEW_STATUS_LOADING || viewStatus === ViewManager.VIEW_STATUS_HIDDEN)) {
     return;
   }
 
   // 设置该视图成可见
-  jqView.attr(Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_SHOW);
-  jqView.css('display', 'block');
+  viewHolder.setAttrValueToTagElement(Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_SHOW);
+  viewHolder.setViewToShow();
   // 修改浏览器URL
-  var viewUrl = jqView.attr(Global.config.viewUrlAttributeName);
+  var viewUrl = viewHolder.getAttrValueFromTagElement(Global.config.viewUrlAttributeName);
   BrowserUrl.setBrowserUrl(viewUrl);
-  var viewTitle = jqView.attr(Global.config.viewTitleAttributeName);
+  var viewTitle = viewHolder.getAttrValueFromTagElement(Global.config.viewTitleAttributeName);
   BrowserTitle.setBrowserTitle(viewTitle);
 
-  if (Utils.isNotEmptyString(viewIndex)) {
-    var viewScope = ViewManager.getViewScope(viewIndex, false);
+  var onViewShow = viewHolder.getPropValueFromViewScope(View.ON_VIEW_SHOW);
+  if (!Utils.isNullOrUndefined(onViewShow)) {
+    // 视图显示时调用
+    onViewShow(viewObject);
+  }
 
-    if (!Utils.isNullOrUndefined(viewScope)) {
-      var onViewShow = viewScope.onViewShow;
+  if (popMode) {
+    var onViewPop = viewHolder.getPropValueFromViewScope(View.ON_VIEW_POP);
 
-      if (!Utils.isNullOrUndefined(onViewShow)) {
-        // 视图显示时调用
-        onViewShow();
-      }
-
-      if (popMode) {
-        var onViewPop = viewScope.onViewPop;
-
-        if (!Utils.isNullOrUndefined(onViewPop)) {
-          onViewPop();
-        }
-      }
+    if (!Utils.isNullOrUndefined(onViewPop)) {
+      onViewPop(viewObject);
     }
   }
 };
@@ -1250,62 +1406,36 @@ ViewManager.hiddenView = function (viewElement, pushMode) {
 
   pushMode = (pushMode === true);
   var jqView = jQuery(viewElement);
-  var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
-  var viewStatus = jqView.attr(Global.config.viewStatusAttributeName);
+  var viewHolder = new ViewHolder(jqView);
+  var viewObject = viewHolder.getViewObject();
+  var viewStatus = viewHolder.getAttrValueFromTagElement(Global.config.viewStatusAttributeName);
 
   if (!(viewStatus === ViewManager.VIEW_STATUS_SHOW || viewStatus === ViewManager.VIEW_STATUS_LOADING)) {
     return;
   }
 
-  if (Utils.isNotEmptyString(viewIndex)) {
-    var viewScope = ViewManager.getViewScope(viewIndex, false);
+  if (!(viewStatus === ViewManager.VIEW_STATUS_LOADING)) {
+    var onViewHidden = viewHolder.getPropValueFromViewScope(View.ON_VIEW_HIDDEN);
 
-    if (!(viewStatus === ViewManager.VIEW_STATUS_LOADING) && !Utils.isNullOrUndefined(viewScope)) {
-      var onViewHidden = viewScope.onViewHidden;
+    if (!Utils.isNullOrUndefined(onViewHidden)) {
+      // 视图隐藏时调用
+      onViewHidden(viewObject);
+    }
 
-      if (!Utils.isNullOrUndefined(onViewHidden)) {
-        // 视图隐藏时调用
-        onViewHidden();
-      }
+    if (pushMode) {
+      var onViewPush = viewHolder.getPropValueFromViewScope(View.ON_VIEW_PUSH);
 
-      if (pushMode) {
-        var onViewPush = viewScope.onViewPush;
-
-        if (!Utils.isNullOrUndefined(onViewPush)) {
-          onViewPush();
-        }
+      if (!Utils.isNullOrUndefined(onViewPush)) {
+        onViewPush(viewObject);
       }
     }
   }
 
   // 设置该视图成不可见
-  jqView.attr(Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_HIDDEN);
-  jqView.css('display', 'none');
+  viewHolder.setAttrValueToTagElement(Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_HIDDEN);
+  viewHolder.setViewToHide();
 };
 
-
-function getOnViewClosingFn(jqView) {
-  if (jqView.length <= 0) {
-    return null;
-  }
-
-  var viewIndex = jqView.attr(Global.config.viewIndexAttributeName);
-  if (!Utils.isNotEmptyString(viewIndex)) {
-    return null;
-  }
-
-  var viewScope = ViewManager.getViewScope(viewIndex, false);
-  if (Utils.isNullOrUndefined(viewScope)) {
-    return null;
-  }
-
-  var onViewClosing = viewScope.onViewClosing;
-  if (Utils.isNullOrUndefined(onViewClosing)) {
-    return null;
-  }
-
-  return onViewClosing;
-}
 
 
 
@@ -1363,7 +1493,7 @@ function AjaxResult(deferred, sourceElement) {
  * @description 处理调用结果
  * @param {function} doneFn 
  * @param {function} failFn 
- * @returns {jQuery.Deferred}
+ * @returns {AjaxResult}
  */
 AjaxResult.prototype.thenResult = function (doneFn, failFn) {
   return this.doHandleResult(doneFn, failFn, false);
@@ -1373,7 +1503,7 @@ AjaxResult.prototype.thenResult = function (doneFn, failFn) {
  * @description 处理调用结果
  * @param {function} doneFn 
  * @param {function} failFn 
- * @returns {jQuery.Deferred}
+ * @returns {AjaxResult}
  */
 AjaxResult.prototype.waitResult = function (doneFn, failFn) {
   return this.doHandleResult(doneFn, failFn, true);
@@ -1384,7 +1514,7 @@ AjaxResult.prototype.waitResult = function (doneFn, failFn) {
  * @param {function} doneFn 
  * @param {function} failFn 
  * @param {boolean} showMask 
- * @returns {jQuery.Deferred}
+ * @returns {AjaxResult}
  */
 AjaxResult.prototype.doHandleResult = function (doneFn, failFn, showMask) {
   if (!Utils.isFunction(doneFn)) {
@@ -1422,11 +1552,11 @@ AjaxResult.prototype.doHandleResult = function (doneFn, failFn, showMask) {
         failFn(deferred, 'error', '');
       }
     }
-
-    return deferred;
   } else {
-    return deferred.then(doneFn, failFn);
+    deferred.then(doneFn, failFn);
   }
+
+  return this;
 };
 
 /**
@@ -1612,7 +1742,7 @@ App.viewScope = function (viewName, registerFn) {
     throw new Error('argument#1 "registerFn" required function');
   }
 
-  var viewScope = ViewManager.getViewScope(viewName);
+  var viewScope = ViewScopeManager.getViewScope(viewName);
   // 调用回调函数初始作用域
   registerFn(viewScope);
 };
@@ -1631,7 +1761,7 @@ App.viewMain = function (viewName, mainFn) {
     throw new Error('argument#1 "mainFn" required function');
   }
 
-  var viewScope = ViewManager.getViewScope(viewName);
+  var viewScope = ViewScopeManager.getViewScope(viewName);
   // 设置主函数
   viewScope.main = mainFn;
 };
@@ -1707,6 +1837,8 @@ var Pure = {
     View: View,
     ViewInfo: ViewInfo,
     ViewResponse: ViewResponse,
+    ViewScopeManager: ViewScopeManager,
+    ViewHolder: ViewHolder,
     ViewLoader: ViewLoader,
     ViewManager: ViewManager,
     ViewMask: ViewMask,

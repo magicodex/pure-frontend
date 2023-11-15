@@ -39,7 +39,7 @@ function ViewHolder(view) {
  */
 ViewHolder.prototype.getViewObject = function () {
   var viewScope = this.getViewScope();
-  if (Utils.isNullOrUndefined(viewObject)) {
+  if (Utils.isNullOrUndefined(viewScope)) {
     throw new Error('viewScope null/undefined');
   }
 
@@ -56,7 +56,7 @@ ViewHolder.prototype.getViewObject = function () {
  * @returns {PlainObject}
  */
 ViewHolder.prototype.getViewScope = function () {
-  var viewIndex = this.getAttrValueFromTagElemen(Global.config.viewIndexAttributeName);
+  var viewIndex = this.getAttrValueFromTagElement(Global.config.viewIndexAttributeName);
 
   if (Utils.isNullOrUndefined(viewIndex)) {
     var idValue = this.getAttrValueFromTagElement('id');
