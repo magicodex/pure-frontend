@@ -61,7 +61,7 @@ ViewManager.loadView = function (url) {
 
     if (_VIEW_LOADED_TRUE === viewLoaded) {
       var viewHolder = new LoadedViewHolder(jqView);
-      onViewClosingFn = viewHolder.getPropValueFromViewScope(View.ON_VIEW_CLOSING);
+      onViewClosingFn = viewHolder.getViewScopePropValue(View.ON_VIEW_CLOSING);
 
       if (!Utils.isNullOrUndefined(onViewClosingFn)) {
         var viewObject = viewHolder.getViewObject();
@@ -160,7 +160,7 @@ ViewManager.popView = function (url) {
 
     if (_VIEW_LOADED_TRUE === viewLoaded) {
       var viewHolder = new LoadedViewHolder(jqView);
-      onViewClosingFn = viewHolder.getPropValueFromViewScope(View.ON_VIEW_CLOSING);
+      onViewClosingFn = viewHolder.getViewScopePropValue(View.ON_VIEW_CLOSING);
 
       if (!Utils.isNullOrUndefined(onViewClosingFn)) {
         var viewObject = viewHolder.getViewObject;
@@ -228,32 +228,36 @@ ViewManager.doRenderView = function (url, afterRenderFn) {
  */
 ViewManager.startViewLifecycle = function (viewElement) {
   if (Utils.isNullOrUndefined(viewElement)) {
-    throw new Error('argument#0 "viewElement is null/undefined');
+    throw new Error('argument#0 "viewElement" is null/undefined');
   }
 
   var jqView = jQuery(viewElement);
   var viewHolder = new LoadedViewHolder(jqView);
   var viewObject = viewHolder.getViewObject();
-  var viewStatus = viewHolder.getPropValueFromViewScope(Global.config.viewStatusAttributeName);
+  var viewStatus = viewHolder.getDomElementAttrValue(Global.config.viewStatusAttributeName);
 
   if (_VIEW_STATUS_DESTROY === viewStatus) {
-    var viewIndex = viewHolder.getAttrValueFromTagElement(Global.config.viewIndexAttributeName);
+    var viewIndex = viewHolder.getDomElementAttrValue(Global.config.viewIndexAttributeName);
     // 移除该视图对应的作用域
     ViewScopeManager.removeViewScope(viewIndex);
 
     return;
   }
 
-  // 设置成准备状态
-  viewHolder.setAttrValueToTagElement(Global.config.viewStatusAttributeName, _VIEW_STATUS_READY);
+  if (!(_VIEW_STATUS_INIT === viewStatus)) {
+    return;
+  }
 
-  var onViewLifecycleStart = viewHolder.getPropValueFromViewScope(View.ON_VIEW_LIFECYCLE_START);
+  // 设置成准备状态
+  viewHolder.setDomElementAttrValue(Global.config.viewStatusAttributeName, _VIEW_STATUS_READY);
+
+  var onViewLifecycleStart = viewHolder.getViewScopePropValue(View.ON_VIEW_LIFECYCLE_START);
   if (!Utils.isNullOrUndefined(onViewLifecycleStart)) {
     // 视图生命周期开启时调用
     onViewLifecycleStart(viewObject);
   }
 
-  var tabIndex = viewHolder.getAttrValueFromTagElement(Global.config.tabIndexAttributeName);
+  var tabIndex = viewHolder.getDomElementAttrValue(Global.config.tabIndexAttributeName);
   if (tabIndex === ViewManager.currentTab.tabIndex) {
     // 显示视图
     ViewManager.showView(viewElement);
@@ -269,7 +273,7 @@ ViewManager.startViewLifecycle = function (viewElement) {
  */
 ViewManager.stopViewLifecycle = function (viewElement) {
   if (Utils.isNullOrUndefined(viewElement)) {
-    throw new Error('argument#0 "viewElement is null/undefined');
+    throw new Error('argument#0 "viewElement" is null/undefined');
   }
 
   // 隐藏视图
@@ -286,14 +290,14 @@ ViewManager.stopViewLifecycle = function (viewElement) {
   if (!(_VIEW_STATUS_INIT === viewStatus)) {
     var viewHolder = new LoadedViewHolder(jqView);
     var viewObject = viewHolder.getViewObject();
-    var onViewLifecycleStop = viewHolder.getPropValueFromViewScope(View.ON_VIEW_LIFECYCLE_STOP);
+    var onViewLifecycleStop = viewHolder.getViewScopePropValue(View.ON_VIEW_LIFECYCLE_STOP);
 
     if (!Utils.isNullOrUndefined(onViewLifecycleStop)) {
       // 视图生命周期结束时调用
       onViewLifecycleStop(viewObject);
     }
 
-    var viewIndex = viewHolder.getAttrValueFromTagElement(Global.config.viewIndexAttributeName);
+    var viewIndex = viewHolder.getDomElementAttrValue(Global.config.viewIndexAttributeName);
     // 移除该视图对应的作用域
     ViewScopeManager.removeViewScope(viewIndex);
   }
@@ -310,7 +314,7 @@ ViewManager.stopViewLifecycle = function (viewElement) {
  */
 ViewManager.showView = function (viewElement, popMode) {
   if (Utils.isNullOrUndefined(viewElement)) {
-    throw new Error('argument#0 "viewElement is null/undefined');
+    throw new Error('argument#0 "viewElement" is null/undefined');
   }
 
   popMode = (popMode === true);
@@ -325,23 +329,23 @@ ViewManager.showView = function (viewElement, popMode) {
   var viewObject = viewHolder.getViewObject();
 
   // 设置该视图成可见
-  viewHolder.setAttrValueToTagElement(Global.config.viewStatusAttributeName, _VIEW_STATUS_SHOW);
+  viewHolder.setDomElementAttrValue(Global.config.viewStatusAttributeName, _VIEW_STATUS_SHOW);
   viewHolder.setViewToShow();
   // 修改浏览器URL
-  var viewUrl = viewHolder.getAttrValueFromTagElement(Global.config.viewUrlAttributeName);
+  var viewUrl = viewHolder.getDomElementAttrValue(Global.config.viewUrlAttributeName);
   BrowserUrl.setBrowserUrl(viewUrl);
   // 修改浏览器标题
-  var viewTitle = viewHolder.getAttrValueFromTagElement(Global.config.viewTitleAttributeName);
+  var viewTitle = viewHolder.getDomElementAttrValue(Global.config.viewTitleAttributeName);
   BrowserTitle.setBrowserTitle(viewTitle);
 
-  var onViewShow = viewHolder.getPropValueFromViewScope(View.ON_VIEW_SHOW);
+  var onViewShow = viewHolder.getViewScopePropValue(View.ON_VIEW_SHOW);
   if (!Utils.isNullOrUndefined(onViewShow)) {
     // 视图显示时调用
     onViewShow(viewObject);
   }
 
-  if ((_VIEW_STATUS_SHOW === viewStatus) && popMode) {
-    var onViewPop = viewHolder.getPropValueFromViewScope(View.ON_VIEW_POP);
+  if ((_VIEW_STATUS_HIDDEN === viewStatus) && popMode) {
+    var onViewPop = viewHolder.getViewScopePropValue(View.ON_VIEW_POP);
 
     if (!Utils.isNullOrUndefined(onViewPop)) {
       onViewPop(viewObject);
@@ -356,7 +360,7 @@ ViewManager.showView = function (viewElement, popMode) {
  */
 ViewManager.hiddenView = function (viewElement, pushMode) {
   if (Utils.isNullOrUndefined(viewElement)) {
-    throw new Error('argument#0 "viewElement is null/undefined');
+    throw new Error('argument#0 "viewElement" is null/undefined');
   }
 
   pushMode = (pushMode === true);
@@ -371,7 +375,7 @@ ViewManager.hiddenView = function (viewElement, pushMode) {
   var viewObject = viewHolder.getViewObject();
 
   if (_VIEW_STATUS_SHOW === viewStatus) {
-    var onViewHidden = viewHolder.getPropValueFromViewScope(View.ON_VIEW_HIDDEN);
+    var onViewHidden = viewHolder.getViewScopePropValue(View.ON_VIEW_HIDDEN);
 
     if (!Utils.isNullOrUndefined(onViewHidden)) {
       // 视图隐藏时调用
@@ -380,7 +384,7 @@ ViewManager.hiddenView = function (viewElement, pushMode) {
   }
 
   if (pushMode) {
-    var onViewPush = viewHolder.getPropValueFromViewScope(View.ON_VIEW_PUSH);
+    var onViewPush = viewHolder.getViewScopePropValue(View.ON_VIEW_PUSH);
 
     if (!Utils.isNullOrUndefined(onViewPush)) {
       onViewPush(viewObject);
@@ -388,7 +392,7 @@ ViewManager.hiddenView = function (viewElement, pushMode) {
   }
 
   // 设置该视图成不可见
-  viewHolder.setAttrValueToTagElement(Global.config.viewStatusAttributeName, _VIEW_STATUS_HIDDEN);
+  viewHolder.setDomElementAttrValue(Global.config.viewStatusAttributeName, _VIEW_STATUS_HIDDEN);
   viewHolder.setViewToHide();
 };
 

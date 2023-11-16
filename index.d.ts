@@ -177,13 +177,13 @@ export namespace fn {
 
         setViewToHide(): void;
 
-        getPropValueFromViewScope(propName: any): any;
+        getViewScopePropValue(propName: any): any;
 
-        setPropValueToViewScope(propName: any, propValue: any): void;
+        setViewScopePropValue(propName: any, propValue: any): void;
 
-        getAttrValueFromTagElement(attrName: any): any;
+        getDomElementAttrValue(attrName: any): any;
 
-        setAttrValueToTagElement(attrName: any, attrValue: any): void;
+        setDomElementAttrValue(attrName: any, attrValue: any): void;
     }
 
     class ViewLoader {

@@ -60,7 +60,7 @@ LoadedViewHolder.prototype.setViewToHide = function () {
  * @param {string} propName 
  * @returns {*}
  */
-LoadedViewHolder.prototype.getPropValueFromViewScope = function (propName) {
+LoadedViewHolder.prototype.getViewScopePropValue = function (propName) {
   if (!Utils.isString(propName)) {
     throw new Error('argument#0 "propName" required string');
   }
@@ -76,7 +76,7 @@ LoadedViewHolder.prototype.getPropValueFromViewScope = function (propName) {
  * @param {string} propName 
  * @param {*} propValue
  */
-LoadedViewHolder.prototype.setPropValueToViewScope = function (propName, propValue) {
+LoadedViewHolder.prototype.setViewScopePropValue = function (propName, propValue) {
   if (!Utils.isString(propName)) {
     throw new Error('argument#0 "propName" required string');
   }
@@ -89,7 +89,7 @@ LoadedViewHolder.prototype.setPropValueToViewScope = function (propName, propVal
  * @description 获取标签元素的指定属性
  * @param {string} attrName 
  */
-LoadedViewHolder.prototype.getAttrValueFromTagElement = function (attrName) {
+LoadedViewHolder.prototype.getDomElementAttrValue = function (attrName) {
   if (!Utils.isString(attrName)) {
     throw new Error('argument#0 "attrName" required string');
   }
@@ -104,7 +104,7 @@ LoadedViewHolder.prototype.getAttrValueFromTagElement = function (attrName) {
  * @param {string} attrName 
  * @param {*} attrValue 
  */
-LoadedViewHolder.prototype.setAttrValueToTagElement = function (attrName, attrValue) {
+LoadedViewHolder.prototype.setDomElementAttrValue = function (attrName, attrValue) {
   if (!Utils.isString(attrName)) {
     throw new Error('argument#0 "attrName" required string');
   }
@@ -135,7 +135,7 @@ LoadedViewHolder.getAndCheckJQueryObject = function (loadedView) {
     throw new Error('the view is not load completed')
   }
 
-  return jQueryObject;
+  return jQueryObject.first();
 };
 
 /**
