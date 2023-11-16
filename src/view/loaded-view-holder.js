@@ -144,22 +144,18 @@ LoadedViewHolder.getAndCheckJQueryObject = function (loadedView) {
  */
 LoadedViewHolder.getAndCheckViewScope = function (jQueryObject) {
   if (Utils.isNullOrUndefined(jQueryObject)) {
-    throw new Error('argument#0 "viewElement" is null/undefined');
+    throw new Error('argument#0 "jQueryObject" is null/undefined');
   }
 
-  var viewName = jQueryObject.attr(Global.config.viewIndexAttributeName);
-  if (Utils.isNullOrUndefined(viewName)) {
-    viewName = jQueryObject.attr(Global.config.viewNameAttributeName);
-  }
-
-  if (Utils.isNullOrUndefined(viewName)) {
+  var viewIndex = jQueryObject.attr(Global.config.viewIndexAttributeName);
+  if (Utils.isNullOrUndefined(viewIndex)) {
     var errorMessage = Utils.formatString('the dom attribute "{0}" is null/undefined',
-      Global.config.viewNameAttributeName);
+      Global.config.viewIndexAttributeName);
 
     throw new Error(errorMessage);
   }
 
-  var viewScope = ViewScopeManager.getViewScope(viewName, true);
+  var viewScope = ViewScopeManager.getViewScope(viewIndex, true);
 
   return viewScope;
 };

@@ -13,6 +13,8 @@ function Global() {
 Global.config = {
   // 单页面基本URL
   singlePageBaseUrl: '/',
+  // 单页面视图父级元素
+  singlePageViewParent: '.pure-app',
   // viewIndex 属性名称
   viewIndexAttributeName: 'data-pure-view-index',
   // viewTitle 属性名称

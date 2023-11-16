@@ -8,6 +8,7 @@ type registerFn = (scope: any) => void;
 
 export const config: {
     singlePageBaseUrl: string;
+    singlePageViewParent: string;
     tabIndexAttributeName: string;
     uiNameAttributeName: string;
     viewIndexAttributeName: string;
@@ -288,6 +289,7 @@ export namespace fn {
     namespace Global {
         const config: {
             singlePageBaseUrl: string;
+            singlePageViewParent: string;
             tabIndexAttributeName: string;
             uiNameAttributeName: string;
             viewIndexAttributeName: string;
@@ -357,7 +359,12 @@ export namespace fn {
     }
 
     namespace ViewLoader {
-        namespace sequenceGenerator {
+        namespace elementIdSuffixGenerator {
+            function nextValue(): any;
+
+        }
+
+        namespace viewIndexSuffixGenerator {
             function nextValue(): any;
 
         }
@@ -365,13 +372,9 @@ export namespace fn {
     }
 
     namespace ViewManager {
-        const appSelector: string;
 
         const currentTab: {
             tabIndex: string;
-        };
-
-        const viewScopes: {
         };
 
         function stopViewLifecycle(viewElement: any): void;
@@ -391,11 +394,6 @@ export namespace fn {
         function pushView(url: any): void;
 
         function showView(viewElement: any): void;
-
-        namespace sequenceGenerator {
-            function nextValue(): any;
-
-        }
 
     }
 

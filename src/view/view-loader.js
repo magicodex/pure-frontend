@@ -27,7 +27,8 @@ function ViewLoader(targetElement, callbackFn) {
   this._jQueryObject = jQuery(targetElement);
 }
 
-ViewLoader.sequenceGenerator = new SequenceGenerator(100001);
+ViewLoader.elementIdSuffixGenerator = new SequenceGenerator(100001);
+ViewLoader.viewIndexSuffixGenerator = new SequenceGenerator(100001);
 ViewLoader.lastViewInfo = {};
 
 /**
@@ -115,32 +116,33 @@ ViewLoader.prototype.renderView = function (url, data, textStatus, jqXHR) {
   var viewInfo = viewResponse.getViewInfo();
   var viewName = viewInfo.getViewName();
   var viewTitle = viewInfo.getViewTitle();
+  var viewIndex = viewName + '_' + ViewLoader.viewIndexSuffixGenerator.nextValue();
   var jqElement = this._jQueryObject;
 
   jqElement.attr('id', viewName);
   // 渲染视图
   jqElement.html(data);
   // 添加自定义属性
+  jqElement.attr(Global.config.viewIndexAttributeName, viewIndex);
+  jqElement.attr(Global.config.viewNameAttributeName, viewName);
   jqElement.attr(Global.config.viewTitleAttributeName, viewTitle);
   jqElement.attr(Global.config.viewUrlAttributeName, url);
-  jqElement.attr(Global.config.viewNameAttributeName, viewName);
   // 执行初始逻辑
   this.initViewAfterRender();
 
-  var viewScope = ViewScopeManager.getViewScope(viewName);
-  viewScope = Utils.emptyObjectIfNullOrUndefined(viewScope);
+  var viewScope = ViewScopeManager.getViewScope(viewName, true);
   var view = new View(this._targetElement, viewInfo, viewScope);
   viewScope.VIEW = view;
   ViewLoader.lastViewInfo.viewScope = viewScope;
   ViewLoader.lastViewInfo.view = view;
+  // 修改视图作用域的名称以支持同时加载多个相同的视图
+  ViewScopeManager.setViewScope(viewIndex, viewScope);
+  ViewScopeManager.removeViewScope(viewName);
 
-  if (!Utils.isNullOrUndefined(viewScope)) {
-    var mainFn = viewScope.main;
-
-    if (!Utils.isNullOrUndefined(mainFn)) {
-      // 调用主函数
-      mainFn(viewScope, view);
-    }
+  var mainFn = viewScope.main;
+  if (!Utils.isNullOrUndefined(mainFn)) {
+    // 调用主函数
+    mainFn(viewScope, view);
   }
 
   // 标记视图加载完成
@@ -148,7 +150,7 @@ ViewLoader.prototype.renderView = function (url, data, textStatus, jqXHR) {
 
   if (!Utils.isNullOrUndefined(this._callbackFn)) {
     // 调用回调函数
-    this._callbackFn(true, viewScope, view);
+    this._callbackFn(true, view, viewScope);
   }
 };
 
@@ -165,7 +167,7 @@ ViewLoader.prototype.initViewAfterRender = function () {
     var id = labelElement.getAttribute('for');
 
     if (Utils.isNotEmptyString(id)) {
-      var sequenceNumber = ViewLoader.sequenceGenerator.nextValue();
+      var sequenceNumber = ViewLoader.elementIdSuffixGenerator.nextValue();
       var newId = id + '_' + sequenceNumber;
 
       var inputSelector = '#' + id;
