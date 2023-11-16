@@ -89,6 +89,7 @@ QUnit.module('ViewManager', function () {
     jqNewView.attr(Global.config.viewStatusAttributeName, 'loading');
     jqNewView.attr(Global.config.viewUrlAttributeName, 'url/100001');
     jqNewView.attr(Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex);
+    jqNewView.attr(Global.config.viewLoadedAttributeName, 'true');
     jqNewView.css('visibility', 'hidden');
     jqNewView.prependTo(jqTest);
 
@@ -131,6 +132,7 @@ QUnit.module('ViewManager', function () {
     jqNewView.attr(Global.config.viewIndexAttributeName, 'viewName1');
     jqNewView.attr(Global.config.viewStatusAttributeName, 'active');
     jqNewView.attr(Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex);
+    jqNewView.attr(Global.config.viewLoadedAttributeName, 'true');
     jqNewView.css('visibility', 'visible');
     jqNewView.prependTo(jqTest);
 
@@ -163,6 +165,7 @@ QUnit.module('ViewManager', function () {
     jqNewView.attr(Global.config.viewIndexAttributeName, 'viewName1');
     jqNewView.attr(Global.config.viewStatusAttributeName, 'hidden');
     jqNewView.attr(Global.config.viewUrlAttributeName, 'url/100001');
+    jqNewView.attr(Global.config.viewLoadedAttributeName, 'true');
     jqNewView.attr(Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex);
     jqNewView.css('visibility', 'hidden');
     jqNewView.prependTo(jqTest);
@@ -205,6 +208,7 @@ QUnit.module('ViewManager', function () {
     var jqNewView = jQuery('<main class="pure-view"></main>');
     jqNewView.attr(Global.config.viewIndexAttributeName, 'viewName1');
     jqNewView.attr(Global.config.viewStatusAttributeName, 'active');
+    jqNewView.attr(Global.config.viewLoadedAttributeName, 'true');
     jqNewView.attr(Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex);
     jqNewView.css('visibility', 'visible');
     jqNewView.prependTo(jqTest);

@@ -21,8 +21,8 @@ function LoadedViewHolder(loadedView) {
   var viewObject = LoadedViewHolder.getAndCheckViewObject(viewScope);
 
   this._jQueryObject = jQueryObject;
-  this._viewObject = viewScope;
-  this._viewScope = viewObject;
+  this._viewScope = viewScope;
+  this._viewObject = viewObject;
 }
 
 /**
@@ -30,7 +30,7 @@ function LoadedViewHolder(loadedView) {
  * @returns {View}
  */
 LoadedViewHolder.prototype.getViewObject = function () {
-  return viewObject;
+  return this._viewObject;
 };
 
 /**
@@ -38,7 +38,7 @@ LoadedViewHolder.prototype.getViewObject = function () {
  * @returns {PlainObject}
  */
 LoadedViewHolder.prototype.getViewScope = function () {
-  return viewScope;
+  return this._viewScope;
 };
 
 /**
@@ -148,7 +148,7 @@ LoadedViewHolder.getAndCheckViewScope = function (jQueryObject) {
   }
 
   // 获取视图索引
-  var viewIndex = jView.attr(Global.config.viewIndexAttributeName);
+  var viewIndex = jQueryObject.attr(Global.config.viewIndexAttributeName);
 
   if (Utils.isNullOrUndefined(viewIndex)) {
     var errorMessage = Utils.formatString('the dom attribute "{0}" is null/undefined',
@@ -167,8 +167,8 @@ LoadedViewHolder.getAndCheckViewScope = function (jQueryObject) {
  * @returns {View}
  */
 LoadedViewHolder.getAndCheckViewObject = function (viewScope) {
-  if (Utils.isNullOrUndefined(viewObject)) {
-    throw new Error('argument#0 "viewElement" is null/undefined');
+  if (Utils.isNullOrUndefined(viewScope)) {
+    throw new Error('argument#0 "viewScope" is null/undefined');
   }
 
   // 获取视图对象

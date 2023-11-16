@@ -834,8 +834,8 @@ function LoadedViewHolder(loadedView) {
   var viewObject = LoadedViewHolder.getAndCheckViewObject(viewScope);
 
   this._jQueryObject = jQueryObject;
-  this._viewObject = viewScope;
-  this._viewScope = viewObject;
+  this._viewScope = viewScope;
+  this._viewObject = viewObject;
 }
 
 /**
@@ -843,7 +843,7 @@ function LoadedViewHolder(loadedView) {
  * @returns {View}
  */
 LoadedViewHolder.prototype.getViewObject = function () {
-  return viewObject;
+  return this._viewObject;
 };
 
 /**
@@ -851,7 +851,7 @@ LoadedViewHolder.prototype.getViewObject = function () {
  * @returns {PlainObject}
  */
 LoadedViewHolder.prototype.getViewScope = function () {
-  return viewScope;
+  return this._viewScope;
 };
 
 /**
@@ -961,7 +961,7 @@ LoadedViewHolder.getAndCheckViewScope = function (jQueryObject) {
   }
 
   // 获取视图索引
-  var viewIndex = jView.attr(Global.config.viewIndexAttributeName);
+  var viewIndex = jQueryObject.attr(Global.config.viewIndexAttributeName);
 
   if (Utils.isNullOrUndefined(viewIndex)) {
     var errorMessage = Utils.formatString('the dom attribute "{0}" is null/undefined',
@@ -980,8 +980,8 @@ LoadedViewHolder.getAndCheckViewScope = function (jQueryObject) {
  * @returns {View}
  */
 LoadedViewHolder.getAndCheckViewObject = function (viewScope) {
-  if (Utils.isNullOrUndefined(viewObject)) {
-    throw new Error('argument#0 "viewElement" is null/undefined');
+  if (Utils.isNullOrUndefined(viewScope)) {
+    throw new Error('argument#0 "viewScope" is null/undefined');
   }
 
   // 获取视图对象
@@ -1011,6 +1011,7 @@ function ViewLoader(targetElement, callbackFn) {
 
   this._targetElement = targetElement;
   this._callbackFn = callbackFn;
+  this._jQueryObject = jQuery(targetElement);
 }
 
 ViewLoader.sequenceGenerator = new SequenceGenerator(100001);
@@ -1032,13 +1033,18 @@ ViewLoader.prototype.loadView = function (url) {
       // 覆盖全局的错误处理
     }
   });
+
+  var jqElement = _jQueryObject;
   var viewLoader = this;
+  // 标记视图未完成加载
+  jqElement.attr(Global.config.viewLoadedAttributeName, Global.constants.VIEW_LOADED_FALSE);
 
   deferred.done(function (data, textStatus, jqXHR) {
     try {
       // 判断是否需要渲染视图
       if (!viewLoader.preRenderView(url, data, textStatus, jqXHR)) {
         if (!Utils.isNullOrUndefined(viewLoader._callbackFn)) {
+          // 调用回调函数
           viewLoader._callbackFn(false);
         }
 
@@ -1049,15 +1055,21 @@ ViewLoader.prototype.loadView = function (url) {
       viewLoader.renderView(url, data, textStatus, jqXHR);
     } catch (error) {
       console.error(error);
+      // 标记视图加载出错
+      jqElement.attr(Global.config.viewLoadedAttributeName, Global.constants.VIEW_LOADED_ERROR);
 
       if (!Utils.isNullOrUndefined(viewLoader._callbackFn)) {
+        // 调用回调函数
         viewLoader._callbackFn(false);
       }
     }
   }).fail(function (jqXHR, textStatus, errorThrown) {
     AjaxResult.handleAjaxError(null, jqXHR, textStatus, errorThrown);
+    // 标记视图加载出错
+    jqElement.attr(Global.config.viewLoadedAttributeName, Global.constants.VIEW_LOADED_ERROR);
 
     if (!Utils.isNullOrUndefined(viewLoader._callbackFn)) {
+      // 调用回调函数
       viewLoader._callbackFn(false);
     }
   });
@@ -1090,14 +1102,15 @@ ViewLoader.prototype.renderView = function (url, data, textStatus, jqXHR) {
   var viewInfo = viewResponse.getViewInfo();
   var viewName = viewInfo.getViewName();
   var viewTitle = viewInfo.getViewTitle();
-  var jqElement = jQuery(this._targetElement);
+  var jqElement = this._jQueryObject;
 
   jqElement.attr('id', viewName);
   // 渲染视图
   jqElement.html(data);
   // 添加自定义属性
-  jqElement.attr(Global.config.viewUrlAttributeName, url);
   jqElement.attr(Global.config.viewTitleAttributeName, viewTitle);
+  jqElement.attr(Global.config.viewNameAttributeName, viewName);
+  jqElement.attr(Global.config.viewUrlAttributeName, url);
   // 执行初始逻辑
   this.initViewAfterRender();
 
@@ -1117,7 +1130,11 @@ ViewLoader.prototype.renderView = function (url, data, textStatus, jqXHR) {
     }
   }
 
+  // 标记视图加载完成
+  jqElement.attr(Global.config.viewLoadedAttributeName, Global.constants.VIEW_LOADED_TRUE);
+
   if (!Utils.isNullOrUndefined(this._callbackFn)) {
+    // 调用回调函数
     this._callbackFn(true, viewScope, view);
   }
 };
@@ -1126,7 +1143,7 @@ ViewLoader.prototype.renderView = function (url, data, textStatus, jqXHR) {
  * @description 在渲染视图后初始
  */
 ViewLoader.prototype.initViewAfterRender = function () {
-  var jqView = jQuery(this._targetElement);
+  var jqView = this._jQueryObject;
   var jqLabel = jqView.find('label[for]');
 
   // 每个 label 标签对应的 id 加上后缀，
