@@ -71,7 +71,7 @@ Global.constants = {
   // 视图加载出错
   VIEW_LOADED_ERROR: 'error',
   // 视图加载状态
-  VIEW_STATUS_LOADING: 'loading',
+  VIEW_STATUS_INIT: 'init',
   // 视图活跃状态
   VIEW_STATUS_ACTIVE: 'active',
   // 视图隐藏状态
@@ -1184,7 +1184,7 @@ ViewManager.appSelector = '.pure-app';
 var _VIEW_LOADED_TRUE = Global.constants.VIEW_LOADED_TRUE;
 var _VIEW_LOADED_FALSE = Global.constants.VIEW_LOADED_FALSE;
 var _VIEW_LOADED_ERROR = Global.constants.VIEW_LOADED_ERROR;
-var _VIEW_STATUS_LOADING = Global.constants.VIEW_STATUS_LOADING;
+var _VIEW_STATUS_INIT = Global.constants.VIEW_STATUS_INIT;
 var _VIEW_STATUS_ACTIVE = Global.constants.VIEW_STATUS_ACTIVE;
 var _VIEW_STATUS_HIDDEN = Global.constants.VIEW_STATUS_HIDDEN;
 var _VIEW_STATUS_DESTROY = Global.constants.VIEW_STATUS_DESTROY;
@@ -1333,7 +1333,7 @@ ViewManager.doRenderView = function (url, afterRenderFn) {
   var jqViewParent = jQuery(ViewManager.appSelector);
   var viewSelector = Utils.formatString('main[{0}="{1}"][{2}="{3}"]',
     [Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex,
-    Global.config.viewStatusAttributeName, _VIEW_STATUS_LOADING]);
+    Global.config.viewStatusAttributeName, _VIEW_STATUS_INIT]);
   var jqView = jqViewParent.find(viewSelector);
 
   if (jqView.length > 0) {
@@ -1341,7 +1341,7 @@ ViewManager.doRenderView = function (url, afterRenderFn) {
   }
 
   var jqNewView = jQuery('<main class="pure-view"></main>');
-  jqNewView.attr(Global.config.viewStatusAttributeName, _VIEW_STATUS_LOADING);
+  jqNewView.attr(Global.config.viewStatusAttributeName, _VIEW_STATUS_INIT);
   jqNewView.attr(Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex);
   jqNewView.css('display', 'none');
   jqNewView.prependTo(jqViewParent);
@@ -1433,11 +1433,11 @@ ViewManager.stopViewLifecycle = function (viewElement) {
   var viewObject = viewHolder.getViewObject();
   var viewStatus = viewHolder.getAttrValueFromTagElement(Global.config.viewStatusAttributeName);
 
-  if (!(viewStatus === _VIEW_STATUS_HIDDEN || viewStatus === _VIEW_STATUS_LOADING)) {
+  if (!(viewStatus === _VIEW_STATUS_HIDDEN || viewStatus === _VIEW_STATUS_INIT)) {
     return;
   }
 
-  if (!(viewStatus === _VIEW_STATUS_LOADING)) {
+  if (!(viewStatus === _VIEW_STATUS_INIT)) {
     var onViewLifecycleStop = viewHolder.getPropValueFromViewScope(View.ON_VIEW_LIFECYCLE_STOP);
 
     if (!Utils.isNullOrUndefined(onViewLifecycleStop)) {
@@ -1471,7 +1471,7 @@ ViewManager.showView = function (viewElement, popMode) {
   var viewObject = viewHolder.getViewObject();
   var viewStatus = viewHolder.getAttrValueFromTagElement(Global.config.viewStatusAttributeName);
 
-  if (!(viewStatus === _VIEW_STATUS_LOADING || viewStatus === _VIEW_STATUS_HIDDEN)) {
+  if (!(viewStatus === _VIEW_STATUS_INIT || viewStatus === _VIEW_STATUS_HIDDEN)) {
     return;
   }
 
@@ -1515,11 +1515,11 @@ ViewManager.hiddenView = function (viewElement, pushMode) {
   var viewObject = viewHolder.getViewObject();
   var viewStatus = viewHolder.getAttrValueFromTagElement(Global.config.viewStatusAttributeName);
 
-  if (!(viewStatus === _VIEW_STATUS_ACTIVE || viewStatus === _VIEW_STATUS_LOADING)) {
+  if (!(viewStatus === _VIEW_STATUS_ACTIVE || viewStatus === _VIEW_STATUS_INIT)) {
     return;
   }
 
-  if (!(viewStatus === _VIEW_STATUS_LOADING)) {
+  if (!(viewStatus === _VIEW_STATUS_INIT)) {
     var onViewHidden = viewHolder.getPropValueFromViewScope(View.ON_VIEW_HIDDEN);
 
     if (!Utils.isNullOrUndefined(onViewHidden)) {

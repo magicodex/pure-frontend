@@ -86,7 +86,7 @@ QUnit.module('ViewManager', function () {
     var jqTest = $('#qunit-fixture');
     var jqNewView = jQuery('<main class="pure-view"></main>');
     jqNewView.attr(Global.config.viewIndexAttributeName, 'viewName1');
-    jqNewView.attr(Global.config.viewStatusAttributeName, 'loading');
+    jqNewView.attr(Global.config.viewStatusAttributeName, 'init');
     jqNewView.attr(Global.config.viewUrlAttributeName, 'url/100001');
     jqNewView.attr(Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex);
     jqNewView.attr(Global.config.viewLoadedAttributeName, 'true');

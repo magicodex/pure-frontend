@@ -60,7 +60,7 @@ Global.constants = {
   // 视图加载出错
   VIEW_LOADED_ERROR: 'error',
   // 视图加载状态
-  VIEW_STATUS_LOADING: 'loading',
+  VIEW_STATUS_INIT: 'init',
   // 视图活跃状态
   VIEW_STATUS_ACTIVE: 'active',
   // 视图隐藏状态
