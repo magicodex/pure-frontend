@@ -11,20 +11,32 @@ function Global() {
 
 // 全局配置
 Global.config = {
-  // viewStatus 属性名称
-  viewStatusAttributeName: 'data-pure-view-status',
+  // 单页面基本URL
+  singlePageBaseUrl: '/',
   // viewIndex 属性名称
   viewIndexAttributeName: 'data-pure-view-index',
-  // viewUrl 属性名称
-  viewUrlAttributeName: 'data-pure-view-url',
   // viewTitle 属性名称
   viewTitleAttributeName: 'data-pure-view-title',
-  // tabIndex 属性名称
-  tabIndexAttributeName: 'data-pure-tab-index',
+  // viewName 属性名称
+  viewNameAttributeName: 'data-pure-view-name',
+  // viewUrl 属性名称
+  viewUrlAttributeName: 'data-pure-view-url',
+  // viewLoaded 属性名称
+  viewLoadedAttributeName: 'data-pure-view-loaded',
+  // viewStatus 属性名称
+  viewStatusAttributeName: 'data-pure-view-status',
   // uiName 属性名称
   uiNameAttributeName: 'data-pure-ui-name',
-  // 单页面基本URL
-  singlePageBaseUrl: '/'
+  // tabIndex 属性名称
+  tabIndexAttributeName: 'data-pure-tab-index',
+  // 视图名称响应头属性
+  viewNameHeaderName: 'x-page-code',
+  // 视图标题响应头属性
+  viewTitleHeaderName: 'x-page-name',
+  // 视图 URL 路径响应头属性
+  fullUrlHeaderName: 'x-page-url',
+  // 视图 URL 模式响应头属性
+  urlPatternHeaderName: 'x-url-pattern'
 };
 
 // 全局多语言信息
@@ -37,6 +49,17 @@ Global.messages = {
   notFoundFullUrl: 'Not found fullUrl from response header!',
   // 未找到URL模式
   notFoundUrlPattern: 'Not found urlPattern from response header!'
+};
+
+// 全局常量
+Global.constants = {
+  VIEW_LOADED_TRUE: 'true',
+  VIEW_LOADED_FALSE: 'false',
+  VIEW_LOADED_ERROR: 'error',
+  VIEW_STATUS_LOADING: 'loading',
+  VIEW_STATUS_ACTIVE: 'active',
+  VIEW_STATUS_HIDDEN: 'hidden',
+  VIEW_STATUS_DESTROY: 'destroy'
 };
 
 /* SOURCE-CODE-END */

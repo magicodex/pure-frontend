@@ -1,7 +1,7 @@
 "use strict";
 
 /*!
- * pure-frontend v1.2.10 (https://gitee.com/magicodex/pure-frontend)
+ * pure-frontend v1.3.0-dev (https://gitee.com/magicodex/pure-frontend)
  * Licensed under MIT (https://gitee.com/magicodex/pure-frontend/blob/master/LICENSE)
  */
 
@@ -22,20 +22,32 @@ function Global() {
 
 // 全局配置
 Global.config = {
-  // viewStatus 属性名称
-  viewStatusAttributeName: 'data-pure-view-status',
+  // 单页面基本URL
+  singlePageBaseUrl: '/',
   // viewIndex 属性名称
   viewIndexAttributeName: 'data-pure-view-index',
-  // viewUrl 属性名称
-  viewUrlAttributeName: 'data-pure-view-url',
   // viewTitle 属性名称
   viewTitleAttributeName: 'data-pure-view-title',
-  // tabIndex 属性名称
-  tabIndexAttributeName: 'data-pure-tab-index',
+  // viewName 属性名称
+  viewNameAttributeName: 'data-pure-view-name',
+  // viewUrl 属性名称
+  viewUrlAttributeName: 'data-pure-view-url',
+  // viewLoaded 属性名称
+  viewLoadedAttributeName: 'data-pure-view-loaded',
+  // viewStatus 属性名称
+  viewStatusAttributeName: 'data-pure-view-status',
   // uiName 属性名称
   uiNameAttributeName: 'data-pure-ui-name',
-  // 单页面基本URL
-  singlePageBaseUrl: '/'
+  // tabIndex 属性名称
+  tabIndexAttributeName: 'data-pure-tab-index',
+  // 视图名称响应头属性
+  viewNameHeaderName: 'x-page-code',
+  // 视图标题响应头属性
+  viewTitleHeaderName: 'x-page-name',
+  // 视图 URL 路径响应头属性
+  fullUrlHeaderName: 'x-page-url',
+  // 视图 URL 模式响应头属性
+  urlPatternHeaderName: 'x-url-pattern'
 };
 
 // 全局多语言信息
@@ -48,6 +60,17 @@ Global.messages = {
   notFoundFullUrl: 'Not found fullUrl from response header!',
   // 未找到URL模式
   notFoundUrlPattern: 'Not found urlPattern from response header!'
+};
+
+// 全局常量
+Global.constants = {
+  VIEW_LOADED_TRUE: 'true',
+  VIEW_LOADED_FALSE: 'false',
+  VIEW_LOADED_ERROR: 'error',
+  VIEW_STATUS_LOADING: 'loading',
+  VIEW_STATUS_ACTIVE: 'active',
+  VIEW_STATUS_HIDDEN: 'hidden',
+  VIEW_STATUS_DESTROY: 'destroy'
 };
 
 
@@ -691,32 +714,27 @@ function ViewResponse(url, jqXHR) {
   this._jqXHR = jqXHR;
 }
 
-ViewResponse.viewNameHeaderName = 'x-page-code';
-ViewResponse.viewTitleHeaderName = 'x-page-name';
-ViewResponse.fullUrlHeaderName = 'x-page-url';
-ViewResponse.urlPatternHeaderName = 'x-url-pattern';
-
 /**
  * @description 返回视图信息
  * @returns {ViewInfo}
  */
 ViewResponse.prototype.getViewInfo = function () {
-  var viewName = this._jqXHR.getResponseHeader(ViewResponse.viewNameHeaderName);
+  var viewName = this._jqXHR.getResponseHeader(Global.config.viewNameHeaderName);
   if (Utils.isNullOrUndefined(viewName)) {
     throw new Error(Global.messages.notFoundviewName);
   }
 
-  var fullUrl = this._jqXHR.getResponseHeader(ViewResponse.fullUrlHeaderName);
+  var fullUrl = this._jqXHR.getResponseHeader(Global.config.fullUrlHeaderName);
   if (Utils.isNullOrUndefined(fullUrl)) {
     throw new Error(Global.messages.notFoundFullUrl);
   }
 
-  var urlPattern = this._jqXHR.getResponseHeader(ViewResponse.urlPatternHeaderName);
+  var urlPattern = this._jqXHR.getResponseHeader(Global.config.urlPatternHeaderName);
   if (Utils.isNullOrUndefined(urlPattern)) {
     throw new Error(Global.messages.notFoundUrlPattern);
   }
 
-  var viewTitle = this._jqXHR.getResponseHeader(ViewResponse.viewTitleHeaderName);
+  var viewTitle = this._jqXHR.getResponseHeader(Global.config.viewTitleHeaderName);
   if (Utils.isNotEmptyString(viewTitle)) {
     viewTitle = decodeURIComponent(viewTitle);
   }
@@ -1095,10 +1113,13 @@ ViewManager.currentTab = { tabIndex: 'default' };
 ViewManager.sequenceGenerator = new SequenceGenerator(100001);
 ViewManager.appSelector = '.pure-app';
 
-ViewManager.VIEW_STATUS_LOADING = 'loading';
-ViewManager.VIEW_STATUS_ACTIVE = 'active';
-ViewManager.VIEW_STATUS_HIDDEN = 'hidden';
-ViewManager.VIEW_STATUS_DESTROY = 'destroy';
+var _VIEW_LOADED_TRUE = Global.constants.VIEW_LOADED_TRUE;
+var _VIEW_LOADED_FALSE = Global.constants.VIEW_LOADED_FALSE;
+var _VIEW_LOADED_ERROR = Global.constants.VIEW_LOADED_ERROR;
+var _VIEW_STATUS_LOADING = Global.constants.VIEW_STATUS_LOADING;
+var _VIEW_STATUS_ACTIVE = Global.constants.VIEW_STATUS_ACTIVE;
+var _VIEW_STATUS_HIDDEN = Global.constants.VIEW_STATUS_HIDDEN;
+var _VIEW_STATUS_DESTROY = Global.constants.VIEW_STATUS_DESTROY;
 
 /**
  * @description 加载视图
@@ -1172,7 +1193,7 @@ ViewManager.pushView = function (url) {
 
   var jqViewParent = jQuery(ViewManager.appSelector);
   var viewSelector = Utils.formatString('main[{0}="{1}"]:first',
-    [Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_ACTIVE]);
+    [Global.config.viewStatusAttributeName, _VIEW_STATUS_ACTIVE]);
   var jqCurrentView = jqViewParent.children(viewSelector);
 
   // 加载新的视图
@@ -1244,7 +1265,7 @@ ViewManager.doRenderView = function (url, afterRenderFn) {
   var jqViewParent = jQuery(ViewManager.appSelector);
   var viewSelector = Utils.formatString('main[{0}="{1}"][{2}="{3}"]',
     [Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex,
-    Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_LOADING]);
+    Global.config.viewStatusAttributeName, _VIEW_STATUS_LOADING]);
   var jqView = jqViewParent.find(viewSelector);
 
   if (jqView.length > 0) {
@@ -1252,14 +1273,16 @@ ViewManager.doRenderView = function (url, afterRenderFn) {
   }
 
   var jqNewView = jQuery('<main class="pure-view"></main>');
-  jqNewView.attr(Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_LOADING);
+  jqNewView.attr(Global.config.viewStatusAttributeName, _VIEW_STATUS_LOADING);
   jqNewView.attr(Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex);
+  jqNewView.attr(Global.config.viewLoadedAttributeName, _VIEW_LOADED_FALSE);
   jqNewView.css('display', 'none');
   jqNewView.prependTo(jqViewParent);
 
   // 创建视图加载器
   var viewLoader = new ViewLoader(jqNewView[0], function (success, viewScope, view) {
     if (!(success === true)) {
+      jqNewView.attr(Global.config.viewLoadedAttributeName, _VIEW_LOADED_ERROR);
       ViewManager.stopViewLifecycle(jqNewView);
       return;
     }
@@ -1270,6 +1293,8 @@ ViewManager.doRenderView = function (url, afterRenderFn) {
     var viewIndex = viewName + '_' + sequenceNumber;
     // 记录视图索引
     jqNewView.attr(Global.config.viewIndexAttributeName, viewIndex);
+
+    jqNewView.attr(Global.config.viewLoadedAttributeName, _VIEW_LOADED_TRUE);
 
     // 修改视图作用域的名称以支持同时加载多个相同的视图
     if (!Utils.isNullOrUndefined(viewScope)) {
@@ -1304,7 +1329,7 @@ ViewManager.startViewLifecycle = function (viewElement) {
   var tabIndex = viewHolder.getAttrValueFromTagElement(Global.config.tabIndexAttributeName);
   var viewStatus = viewHolder.getAttrValueFromTagElement(Global.config.viewStatusAttributeName);
 
-  if (viewStatus === ViewManager.VIEW_STATUS_DESTROY) {
+  if (viewStatus === _VIEW_STATUS_DESTROY) {
     var viewIndex = viewHolder.getAttrValueFromTagElement(Global.config.viewIndexAttributeName);
     // 移除该视图对应的作用域
     ViewScopeManager.removeViewScope(viewIndex);
@@ -1344,11 +1369,11 @@ ViewManager.stopViewLifecycle = function (viewElement) {
   var viewObject = viewHolder.getViewObject();
   var viewStatus = viewHolder.getAttrValueFromTagElement(Global.config.viewStatusAttributeName);
 
-  if (!(viewStatus === ViewManager.VIEW_STATUS_HIDDEN || viewStatus === ViewManager.VIEW_STATUS_LOADING)) {
+  if (!(viewStatus === _VIEW_STATUS_HIDDEN || viewStatus === _VIEW_STATUS_LOADING)) {
     return;
   }
 
-  if (!(viewStatus === ViewManager.VIEW_STATUS_LOADING)) {
+  if (!(viewStatus === _VIEW_STATUS_LOADING)) {
     var onViewLifecycleStop = viewHolder.getPropValueFromViewScope(View.ON_VIEW_LIFECYCLE_STOP);
 
     if (!Utils.isNullOrUndefined(onViewLifecycleStop)) {
@@ -1361,7 +1386,7 @@ ViewManager.stopViewLifecycle = function (viewElement) {
     ViewScopeManager.removeViewScope(viewIndex);
   }
 
-  viewHolder.setAttrValueToTagElement(Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_DESTROY);
+  viewHolder.setAttrValueToTagElement(Global.config.viewStatusAttributeName, _VIEW_STATUS_DESTROY);
   // 移除该视图对应的 DOM 元素
   jqView.remove();
 };
@@ -1382,12 +1407,12 @@ ViewManager.showView = function (viewElement, popMode) {
   var viewObject = viewHolder.getViewObject();
   var viewStatus = viewHolder.getAttrValueFromTagElement(Global.config.viewStatusAttributeName);
 
-  if (!(viewStatus === ViewManager.VIEW_STATUS_LOADING || viewStatus === ViewManager.VIEW_STATUS_HIDDEN)) {
+  if (!(viewStatus === _VIEW_STATUS_LOADING || viewStatus === _VIEW_STATUS_HIDDEN)) {
     return;
   }
 
   // 设置该视图成可见
-  viewHolder.setAttrValueToTagElement(Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_ACTIVE);
+  viewHolder.setAttrValueToTagElement(Global.config.viewStatusAttributeName, _VIEW_STATUS_ACTIVE);
   viewHolder.setViewToShow();
   // 修改浏览器URL
   var viewUrl = viewHolder.getAttrValueFromTagElement(Global.config.viewUrlAttributeName);
@@ -1426,11 +1451,11 @@ ViewManager.hiddenView = function (viewElement, pushMode) {
   var viewObject = viewHolder.getViewObject();
   var viewStatus = viewHolder.getAttrValueFromTagElement(Global.config.viewStatusAttributeName);
 
-  if (!(viewStatus === ViewManager.VIEW_STATUS_ACTIVE || viewStatus === ViewManager.VIEW_STATUS_LOADING)) {
+  if (!(viewStatus === _VIEW_STATUS_ACTIVE || viewStatus === _VIEW_STATUS_LOADING)) {
     return;
   }
 
-  if (!(viewStatus === ViewManager.VIEW_STATUS_LOADING)) {
+  if (!(viewStatus === _VIEW_STATUS_LOADING)) {
     var onViewHidden = viewHolder.getPropValueFromViewScope(View.ON_VIEW_HIDDEN);
 
     if (!Utils.isNullOrUndefined(onViewHidden)) {
@@ -1448,7 +1473,7 @@ ViewManager.hiddenView = function (viewElement, pushMode) {
   }
 
   // 设置该视图成不可见
-  viewHolder.setAttrValueToTagElement(Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_HIDDEN);
+  viewHolder.setAttrValueToTagElement(Global.config.viewStatusAttributeName, _VIEW_STATUS_HIDDEN);
   viewHolder.setViewToHide();
 };
 

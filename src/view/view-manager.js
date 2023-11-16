@@ -24,10 +24,13 @@ ViewManager.currentTab = { tabIndex: 'default' };
 ViewManager.sequenceGenerator = new SequenceGenerator(100001);
 ViewManager.appSelector = '.pure-app';
 
-ViewManager.VIEW_STATUS_LOADING = 'loading';
-ViewManager.VIEW_STATUS_ACTIVE = 'active';
-ViewManager.VIEW_STATUS_HIDDEN = 'hidden';
-ViewManager.VIEW_STATUS_DESTROY = 'destroy';
+var _VIEW_LOADED_TRUE = Global.constants.VIEW_LOADED_TRUE;
+var _VIEW_LOADED_FALSE = Global.constants.VIEW_LOADED_FALSE;
+var _VIEW_LOADED_ERROR = Global.constants.VIEW_LOADED_ERROR;
+var _VIEW_STATUS_LOADING = Global.constants.VIEW_STATUS_LOADING;
+var _VIEW_STATUS_ACTIVE = Global.constants.VIEW_STATUS_ACTIVE;
+var _VIEW_STATUS_HIDDEN = Global.constants.VIEW_STATUS_HIDDEN;
+var _VIEW_STATUS_DESTROY = Global.constants.VIEW_STATUS_DESTROY;
 
 /**
  * @description 加载视图
@@ -101,7 +104,7 @@ ViewManager.pushView = function (url) {
 
   var jqViewParent = jQuery(ViewManager.appSelector);
   var viewSelector = Utils.formatString('main[{0}="{1}"]:first',
-    [Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_ACTIVE]);
+    [Global.config.viewStatusAttributeName, _VIEW_STATUS_ACTIVE]);
   var jqCurrentView = jqViewParent.children(viewSelector);
 
   // 加载新的视图
@@ -173,7 +176,7 @@ ViewManager.doRenderView = function (url, afterRenderFn) {
   var jqViewParent = jQuery(ViewManager.appSelector);
   var viewSelector = Utils.formatString('main[{0}="{1}"][{2}="{3}"]',
     [Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex,
-    Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_LOADING]);
+    Global.config.viewStatusAttributeName, _VIEW_STATUS_LOADING]);
   var jqView = jqViewParent.find(viewSelector);
 
   if (jqView.length > 0) {
@@ -181,14 +184,16 @@ ViewManager.doRenderView = function (url, afterRenderFn) {
   }
 
   var jqNewView = jQuery('<main class="pure-view"></main>');
-  jqNewView.attr(Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_LOADING);
+  jqNewView.attr(Global.config.viewStatusAttributeName, _VIEW_STATUS_LOADING);
   jqNewView.attr(Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex);
+  jqNewView.attr(Global.config.viewLoadedAttributeName, _VIEW_LOADED_FALSE);
   jqNewView.css('display', 'none');
   jqNewView.prependTo(jqViewParent);
 
   // 创建视图加载器
   var viewLoader = new ViewLoader(jqNewView[0], function (success, viewScope, view) {
     if (!(success === true)) {
+      jqNewView.attr(Global.config.viewLoadedAttributeName, _VIEW_LOADED_ERROR);
       ViewManager.stopViewLifecycle(jqNewView);
       return;
     }
@@ -199,6 +204,8 @@ ViewManager.doRenderView = function (url, afterRenderFn) {
     var viewIndex = viewName + '_' + sequenceNumber;
     // 记录视图索引
     jqNewView.attr(Global.config.viewIndexAttributeName, viewIndex);
+
+    jqNewView.attr(Global.config.viewLoadedAttributeName, _VIEW_LOADED_TRUE);
 
     // 修改视图作用域的名称以支持同时加载多个相同的视图
     if (!Utils.isNullOrUndefined(viewScope)) {
@@ -233,7 +240,7 @@ ViewManager.startViewLifecycle = function (viewElement) {
   var tabIndex = viewHolder.getAttrValueFromTagElement(Global.config.tabIndexAttributeName);
   var viewStatus = viewHolder.getAttrValueFromTagElement(Global.config.viewStatusAttributeName);
 
-  if (viewStatus === ViewManager.VIEW_STATUS_DESTROY) {
+  if (viewStatus === _VIEW_STATUS_DESTROY) {
     var viewIndex = viewHolder.getAttrValueFromTagElement(Global.config.viewIndexAttributeName);
     // 移除该视图对应的作用域
     ViewScopeManager.removeViewScope(viewIndex);
@@ -273,11 +280,11 @@ ViewManager.stopViewLifecycle = function (viewElement) {
   var viewObject = viewHolder.getViewObject();
   var viewStatus = viewHolder.getAttrValueFromTagElement(Global.config.viewStatusAttributeName);
 
-  if (!(viewStatus === ViewManager.VIEW_STATUS_HIDDEN || viewStatus === ViewManager.VIEW_STATUS_LOADING)) {
+  if (!(viewStatus === _VIEW_STATUS_HIDDEN || viewStatus === _VIEW_STATUS_LOADING)) {
     return;
   }
 
-  if (!(viewStatus === ViewManager.VIEW_STATUS_LOADING)) {
+  if (!(viewStatus === _VIEW_STATUS_LOADING)) {
     var onViewLifecycleStop = viewHolder.getPropValueFromViewScope(View.ON_VIEW_LIFECYCLE_STOP);
 
     if (!Utils.isNullOrUndefined(onViewLifecycleStop)) {
@@ -290,7 +297,7 @@ ViewManager.stopViewLifecycle = function (viewElement) {
     ViewScopeManager.removeViewScope(viewIndex);
   }
 
-  viewHolder.setAttrValueToTagElement(Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_DESTROY);
+  viewHolder.setAttrValueToTagElement(Global.config.viewStatusAttributeName, _VIEW_STATUS_DESTROY);
   // 移除该视图对应的 DOM 元素
   jqView.remove();
 };
@@ -311,12 +318,12 @@ ViewManager.showView = function (viewElement, popMode) {
   var viewObject = viewHolder.getViewObject();
   var viewStatus = viewHolder.getAttrValueFromTagElement(Global.config.viewStatusAttributeName);
 
-  if (!(viewStatus === ViewManager.VIEW_STATUS_LOADING || viewStatus === ViewManager.VIEW_STATUS_HIDDEN)) {
+  if (!(viewStatus === _VIEW_STATUS_LOADING || viewStatus === _VIEW_STATUS_HIDDEN)) {
     return;
   }
 
   // 设置该视图成可见
-  viewHolder.setAttrValueToTagElement(Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_ACTIVE);
+  viewHolder.setAttrValueToTagElement(Global.config.viewStatusAttributeName, _VIEW_STATUS_ACTIVE);
   viewHolder.setViewToShow();
   // 修改浏览器URL
   var viewUrl = viewHolder.getAttrValueFromTagElement(Global.config.viewUrlAttributeName);
@@ -355,11 +362,11 @@ ViewManager.hiddenView = function (viewElement, pushMode) {
   var viewObject = viewHolder.getViewObject();
   var viewStatus = viewHolder.getAttrValueFromTagElement(Global.config.viewStatusAttributeName);
 
-  if (!(viewStatus === ViewManager.VIEW_STATUS_ACTIVE || viewStatus === ViewManager.VIEW_STATUS_LOADING)) {
+  if (!(viewStatus === _VIEW_STATUS_ACTIVE || viewStatus === _VIEW_STATUS_LOADING)) {
     return;
   }
 
-  if (!(viewStatus === ViewManager.VIEW_STATUS_LOADING)) {
+  if (!(viewStatus === _VIEW_STATUS_LOADING)) {
     var onViewHidden = viewHolder.getPropValueFromViewScope(View.ON_VIEW_HIDDEN);
 
     if (!Utils.isNullOrUndefined(onViewHidden)) {
@@ -377,7 +384,7 @@ ViewManager.hiddenView = function (viewElement, pushMode) {
   }
 
   // 设置该视图成不可见
-  viewHolder.setAttrValueToTagElement(Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_HIDDEN);
+  viewHolder.setAttrValueToTagElement(Global.config.viewStatusAttributeName, _VIEW_STATUS_HIDDEN);
   viewHolder.setViewToHide();
 };
 

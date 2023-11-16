@@ -23,32 +23,27 @@ function ViewResponse(url, jqXHR) {
   this._jqXHR = jqXHR;
 }
 
-ViewResponse.viewNameHeaderName = 'x-page-code';
-ViewResponse.viewTitleHeaderName = 'x-page-name';
-ViewResponse.fullUrlHeaderName = 'x-page-url';
-ViewResponse.urlPatternHeaderName = 'x-url-pattern';
-
 /**
  * @description 返回视图信息
  * @returns {ViewInfo}
  */
 ViewResponse.prototype.getViewInfo = function () {
-  var viewName = this._jqXHR.getResponseHeader(ViewResponse.viewNameHeaderName);
+  var viewName = this._jqXHR.getResponseHeader(Global.config.viewNameHeaderName);
   if (Utils.isNullOrUndefined(viewName)) {
     throw new Error(Global.messages.notFoundviewName);
   }
 
-  var fullUrl = this._jqXHR.getResponseHeader(ViewResponse.fullUrlHeaderName);
+  var fullUrl = this._jqXHR.getResponseHeader(Global.config.fullUrlHeaderName);
   if (Utils.isNullOrUndefined(fullUrl)) {
     throw new Error(Global.messages.notFoundFullUrl);
   }
 
-  var urlPattern = this._jqXHR.getResponseHeader(ViewResponse.urlPatternHeaderName);
+  var urlPattern = this._jqXHR.getResponseHeader(Global.config.urlPatternHeaderName);
   if (Utils.isNullOrUndefined(urlPattern)) {
     throw new Error(Global.messages.notFoundUrlPattern);
   }
 
-  var viewTitle = this._jqXHR.getResponseHeader(ViewResponse.viewTitleHeaderName);
+  var viewTitle = this._jqXHR.getResponseHeader(Global.config.viewTitleHeaderName);
   if (Utils.isNotEmptyString(viewTitle)) {
     viewTitle = decodeURIComponent(viewTitle);
   }

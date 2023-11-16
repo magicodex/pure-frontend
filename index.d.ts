@@ -14,6 +14,7 @@ export const config: {
     viewStatusAttributeName: string;
     viewUrlAttributeName: string;
     viewTitleAttributeName: string;
+    viewLoadedAttributeName: string;
 };
 
 export const messages: {
@@ -152,7 +153,7 @@ export namespace fn {
 
     }
 
-    class ViewHolder {
+    class LoadedViewHolder {
         constructor();
 
         getViewObject(): View;
