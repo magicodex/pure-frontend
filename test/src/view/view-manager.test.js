@@ -70,7 +70,7 @@ QUnit.module('ViewManager', function () {
 
       var jqNewView = jqViewParent.children().first();
       assert.strictEqual(jqNewView.attr(Global.config.tabIndexAttributeName), ViewManager.currentTab.tabIndex);
-      assert.strictEqual(jqNewView.attr(Global.config.viewStatusAttributeName), 'show');
+      assert.strictEqual(jqNewView.attr(Global.config.viewStatusAttributeName), 'active');
       assert.strictEqual(jqNewView.css('visibility'), 'visible');
     } finally {
       ViewLoader.prototype.loadView = oldLoadView;
@@ -115,7 +115,7 @@ QUnit.module('ViewManager', function () {
       ViewManager.startViewLifecycle(jqNewView[0]);
 
       assert.strictEqual(onViewLifecycleStartCalledFlag, true);
-      assert.strictEqual(jqNewView.attr(Global.config.viewStatusAttributeName), 'show');
+      assert.strictEqual(jqNewView.attr(Global.config.viewStatusAttributeName), 'active');
       assert.strictEqual(jqNewView.css('display'), 'block');
       // 检查跳转的 URL
       assert.strictEqual(newLocationUrl, '/#/url/100001');
@@ -129,7 +129,7 @@ QUnit.module('ViewManager', function () {
     var jqTest = $('#qunit-fixture');
     var jqNewView = jQuery('<main class="pure-view"></main>');
     jqNewView.attr(Global.config.viewIndexAttributeName, 'viewName1');
-    jqNewView.attr(Global.config.viewStatusAttributeName, 'show');
+    jqNewView.attr(Global.config.viewStatusAttributeName, 'active');
     jqNewView.attr(Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex);
     jqNewView.css('visibility', 'visible');
     jqNewView.prependTo(jqTest);
@@ -190,7 +190,7 @@ QUnit.module('ViewManager', function () {
       ViewManager.showView(jqNewView[0]);
 
       assert.strictEqual(onViewShowCalledFlag, true);
-      assert.strictEqual(jqNewView.attr(Global.config.viewStatusAttributeName), 'show');
+      assert.strictEqual(jqNewView.attr(Global.config.viewStatusAttributeName), 'active');
       assert.strictEqual(jqNewView.css('display'), 'block');
       // 检查跳转的 URL
       assert.strictEqual(newLocationUrl, '/#/url/100001');
@@ -204,7 +204,7 @@ QUnit.module('ViewManager', function () {
     var jqTest = $('#qunit-fixture');
     var jqNewView = jQuery('<main class="pure-view"></main>');
     jqNewView.attr(Global.config.viewIndexAttributeName, 'viewName1');
-    jqNewView.attr(Global.config.viewStatusAttributeName, 'show');
+    jqNewView.attr(Global.config.viewStatusAttributeName, 'active');
     jqNewView.attr(Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex);
     jqNewView.css('visibility', 'visible');
     jqNewView.prependTo(jqTest);

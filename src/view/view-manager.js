@@ -3,7 +3,7 @@
 import jQuery from 'jquery';
 import { Utils } from '../utils';
 import { View } from './view';
-import { ViewHolder } from './view-holder';
+import { LoadedViewHolder } from './loaded-view-holder';
 import { ViewScopeManager } from './view-scope-manager';
 import { ViewLoader } from './view-loader';
 import { Global } from '../global';
@@ -25,7 +25,7 @@ ViewManager.sequenceGenerator = new SequenceGenerator(100001);
 ViewManager.appSelector = '.pure-app';
 
 ViewManager.VIEW_STATUS_LOADING = 'loading';
-ViewManager.VIEW_STATUS_SHOW = 'show';
+ViewManager.VIEW_STATUS_ACTIVE = 'active';
 ViewManager.VIEW_STATUS_HIDDEN = 'hidden';
 ViewManager.VIEW_STATUS_DESTROY = 'destroy';
 
@@ -54,7 +54,7 @@ ViewManager.loadView = function (url) {
   };
 
   if (jqView.length > 0) {
-    var viewHolder = new ViewHolder(jqView);
+    var viewHolder = new LoadedViewHolder(jqView);
     var onViewClosingFn = viewHolder.getPropValueFromViewScope(View.ON_VIEW_CLOSING);
 
     if (Utils.isNullOrUndefined(onViewClosingFn)) {
@@ -101,7 +101,7 @@ ViewManager.pushView = function (url) {
 
   var jqViewParent = jQuery(ViewManager.appSelector);
   var viewSelector = Utils.formatString('main[{0}="{1}"]:first',
-    [Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_SHOW]);
+    [Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_ACTIVE]);
   var jqCurrentView = jqViewParent.children(viewSelector);
 
   // 加载新的视图
@@ -146,7 +146,7 @@ ViewManager.popView = function (url) {
   };
 
   if (jqView.length > 0) {
-    var viewHolder = new ViewHolder(jqView);
+    var viewHolder = new LoadedViewHolder(jqView);
     var onViewClosingFn = viewHolder.getPropValueFromViewScope(View.ON_VIEW_CLOSING);
 
     if (Utils.isNullOrUndefined(onViewClosingFn)) {
@@ -228,7 +228,7 @@ ViewManager.startViewLifecycle = function (viewElement) {
   }
 
   var jqView = jQuery(viewElement);
-  var viewHolder = new ViewHolder(jqView);
+  var viewHolder = new LoadedViewHolder(jqView);
   var viewObject = viewHolder.getViewObject();
   var tabIndex = viewHolder.getAttrValueFromTagElement(Global.config.tabIndexAttributeName);
   var viewStatus = viewHolder.getAttrValueFromTagElement(Global.config.viewStatusAttributeName);
@@ -269,7 +269,7 @@ ViewManager.stopViewLifecycle = function (viewElement) {
   ViewManager.hiddenView(viewElement);
 
   var jqView = jQuery(viewElement);
-  var viewHolder = new ViewHolder(jqView);
+  var viewHolder = new LoadedViewHolder(jqView);
   var viewObject = viewHolder.getViewObject();
   var viewStatus = viewHolder.getAttrValueFromTagElement(Global.config.viewStatusAttributeName);
 
@@ -307,7 +307,7 @@ ViewManager.showView = function (viewElement, popMode) {
 
   popMode = (popMode === true);
   var jqView = jQuery(viewElement);
-  var viewHolder = new ViewHolder(jqView);
+  var viewHolder = new LoadedViewHolder(jqView);
   var viewObject = viewHolder.getViewObject();
   var viewStatus = viewHolder.getAttrValueFromTagElement(Global.config.viewStatusAttributeName);
 
@@ -316,7 +316,7 @@ ViewManager.showView = function (viewElement, popMode) {
   }
 
   // 设置该视图成可见
-  viewHolder.setAttrValueToTagElement(Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_SHOW);
+  viewHolder.setAttrValueToTagElement(Global.config.viewStatusAttributeName, ViewManager.VIEW_STATUS_ACTIVE);
   viewHolder.setViewToShow();
   // 修改浏览器URL
   var viewUrl = viewHolder.getAttrValueFromTagElement(Global.config.viewUrlAttributeName);
@@ -351,11 +351,11 @@ ViewManager.hiddenView = function (viewElement, pushMode) {
 
   pushMode = (pushMode === true);
   var jqView = jQuery(viewElement);
-  var viewHolder = new ViewHolder(jqView);
+  var viewHolder = new LoadedViewHolder(jqView);
   var viewObject = viewHolder.getViewObject();
   var viewStatus = viewHolder.getAttrValueFromTagElement(Global.config.viewStatusAttributeName);
 
-  if (!(viewStatus === ViewManager.VIEW_STATUS_SHOW || viewStatus === ViewManager.VIEW_STATUS_LOADING)) {
+  if (!(viewStatus === ViewManager.VIEW_STATUS_ACTIVE || viewStatus === ViewManager.VIEW_STATUS_LOADING)) {
     return;
   }
 

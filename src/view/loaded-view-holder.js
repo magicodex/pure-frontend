@@ -11,7 +11,7 @@ import { Global } from '../global';
  * @class
  * @param {(jQuery|Element)} view 
  */
-function ViewHolder(view) {
+function LoadedViewHolder(view) {
   var jqView;
 
   if (view instanceof jQuery) {
@@ -37,7 +37,7 @@ function ViewHolder(view) {
  * @description 获取对应的视图对象
  * @returns {View}
  */
-ViewHolder.prototype.getViewObject = function () {
+LoadedViewHolder.prototype.getViewObject = function () {
   var viewScope = this.getViewScope();
   if (Utils.isNullOrUndefined(viewScope)) {
     throw new Error('viewScope null/undefined');
@@ -55,7 +55,7 @@ ViewHolder.prototype.getViewObject = function () {
  * @description 获取视图作用域对象
  * @returns {PlainObject}
  */
-ViewHolder.prototype.getViewScope = function () {
+LoadedViewHolder.prototype.getViewScope = function () {
   var viewIndex = this.getAttrValueFromTagElement(Global.config.viewIndexAttributeName);
 
   if (Utils.isNullOrUndefined(viewIndex)) {
@@ -74,14 +74,14 @@ ViewHolder.prototype.getViewScope = function () {
 /**
  * @description 设置视图成可见
  */
-ViewHolder.prototype.setViewToShow = function () {
+LoadedViewHolder.prototype.setViewToShow = function () {
   this._jqView.css('display', 'block');
 };
 
 /**
  * @description 设置视图成隐藏
  */
-ViewHolder.prototype.setViewToHide = function () {
+LoadedViewHolder.prototype.setViewToHide = function () {
   this._jqView.css('display', 'none');
 };
 
@@ -90,7 +90,7 @@ ViewHolder.prototype.setViewToHide = function () {
  * @param {string} propName 
  * @returns {*}
  */
-ViewHolder.prototype.getPropValueFromViewScope = function (propName) {
+LoadedViewHolder.prototype.getPropValueFromViewScope = function (propName) {
   if (!Utils.isString(propName)) {
     throw new Error('argument#0 "propName" required string');
   }
@@ -110,7 +110,7 @@ ViewHolder.prototype.getPropValueFromViewScope = function (propName) {
  * @param {string} propName 
  * @param {*} propValue
  */
-ViewHolder.prototype.setPropValueToViewScope = function (propName, propValue) {
+LoadedViewHolder.prototype.setPropValueToViewScope = function (propName, propValue) {
   if (!Utils.isString(propName)) {
     throw new Error('argument#0 "propName" required string');
   }
@@ -127,7 +127,7 @@ ViewHolder.prototype.setPropValueToViewScope = function (propName, propValue) {
  * @description 获取标签元素的指定属性
  * @param {string} attrName 
  */
-ViewHolder.prototype.getAttrValueFromTagElement = function (attrName) {
+LoadedViewHolder.prototype.getAttrValueFromTagElement = function (attrName) {
   return this._jqView.attr(attrName);
 };
 
@@ -136,10 +136,10 @@ ViewHolder.prototype.getAttrValueFromTagElement = function (attrName) {
  * @param {string} attrName 
  * @param {*} attrValue 
  */
-ViewHolder.prototype.setAttrValueToTagElement = function (attrName, attrValue) {
+LoadedViewHolder.prototype.setAttrValueToTagElement = function (attrName, attrValue) {
   this._jqView.attr(attrName, attrValue);
 };
 
 /* SOURCE-CODE-END */
 
-export { ViewHolder };
+export { LoadedViewHolder };

@@ -9,7 +9,7 @@ import { View } from './view/view';
 import { ViewInfo } from './view/view-info';
 import { ViewResponse } from './view/view-response';
 import { ViewScopeManager } from './view/view-scope-manager';
-import { ViewHolder } from './view/view-holder';
+import { LoadedViewHolder } from './view/loaded-view-holder';
 import { ViewLoader } from './view/view-loader';
 import { ViewManager } from './view/view-manager';
 import { ViewMask } from './view/view-mask';
@@ -42,7 +42,7 @@ var Pure = {
     ViewInfo: ViewInfo,
     ViewResponse: ViewResponse,
     ViewScopeManager: ViewScopeManager,
-    ViewHolder: ViewHolder,
+    LoadedViewHolder: LoadedViewHolder,
     ViewLoader: ViewLoader,
     ViewManager: ViewManager,
     ViewMask: ViewMask,

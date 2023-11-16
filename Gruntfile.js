@@ -13,7 +13,7 @@ module.exports = function (grunt) {
     'src/view/view-info.js',
     'src/view/view-response.js',
     'src/view/view-scope-manager.js',
-    'src/view/view-holder.js',
+    'src/view/loaded-view-holder.js',
     'src/view/view-loader.js',
     'src/view/view-manager.js',
     'src/view/view-mask.js',
