@@ -28,7 +28,7 @@ var _VIEW_LOADED_TRUE = Global.constants.VIEW_LOADED_TRUE;
 var _VIEW_LOADED_FALSE = Global.constants.VIEW_LOADED_FALSE;
 var _VIEW_LOADED_ERROR = Global.constants.VIEW_LOADED_ERROR;
 var _VIEW_STATUS_INIT = Global.constants.VIEW_STATUS_INIT;
-var _VIEW_STATUS_ACTIVE = Global.constants.VIEW_STATUS_ACTIVE;
+var _VIEW_STATUS_SHOW = Global.constants.VIEW_STATUS_SHOW;
 var _VIEW_STATUS_HIDDEN = Global.constants.VIEW_STATUS_HIDDEN;
 var _VIEW_STATUS_DESTROY = Global.constants.VIEW_STATUS_DESTROY;
 
@@ -104,7 +104,7 @@ ViewManager.pushView = function (url) {
 
   var jqViewParent = jQuery(ViewManager.appSelector);
   var viewSelector = Utils.formatString('main[{0}="{1}"]:first',
-    [Global.config.viewStatusAttributeName, _VIEW_STATUS_ACTIVE]);
+    [Global.config.viewStatusAttributeName, _VIEW_STATUS_SHOW]);
   var jqCurrentView = jqViewParent.children(viewSelector);
 
   // 加载新的视图
@@ -319,7 +319,7 @@ ViewManager.showView = function (viewElement, popMode) {
   }
 
   // 设置该视图成可见
-  viewHolder.setAttrValueToTagElement(Global.config.viewStatusAttributeName, _VIEW_STATUS_ACTIVE);
+  viewHolder.setAttrValueToTagElement(Global.config.viewStatusAttributeName, _VIEW_STATUS_SHOW);
   viewHolder.setViewToShow();
   // 修改浏览器URL
   var viewUrl = viewHolder.getAttrValueFromTagElement(Global.config.viewUrlAttributeName);
@@ -356,7 +356,7 @@ ViewManager.hiddenView = function (viewElement, pushMode) {
   var jqView = jQuery(viewElement);
   var viewStatus = jqView.attr(Global.config.viewStatusAttributeName);
 
-  if (!(_VIEW_STATUS_ACTIVE === viewStatus || _VIEW_STATUS_INIT === viewStatus)) {
+  if (!(_VIEW_STATUS_SHOW === viewStatus || _VIEW_STATUS_INIT === viewStatus)) {
     return;
   }
 

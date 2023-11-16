@@ -61,8 +61,10 @@ Global.constants = {
   VIEW_LOADED_ERROR: 'error',
   // 视图加载状态
   VIEW_STATUS_INIT: 'init',
+  // 视图准备状态
+  VIEW_STATUS_READY: 'ready',
   // 视图活跃状态
-  VIEW_STATUS_ACTIVE: 'active',
+  VIEW_STATUS_SHOW: 'show',
   // 视图隐藏状态
   VIEW_STATUS_HIDDEN: 'hidden',
   // 视图销毁状态
