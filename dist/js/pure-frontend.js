@@ -64,12 +64,19 @@ Global.messages = {
 
 // 全局常量
 Global.constants = {
+  // 视图已加载完成
   VIEW_LOADED_TRUE: 'true',
+  // 视图未加载完成
   VIEW_LOADED_FALSE: 'false',
+  // 视图加载出错
   VIEW_LOADED_ERROR: 'error',
+  // 视图加载状态
   VIEW_STATUS_LOADING: 'loading',
+  // 视图活跃状态
   VIEW_STATUS_ACTIVE: 'active',
+  // 视图隐藏状态
   VIEW_STATUS_HIDDEN: 'hidden',
+  // 视图销毁状态
   VIEW_STATUS_DESTROY: 'destroy'
 };
 
@@ -520,6 +527,110 @@ BrowserTitle.setBrowserTitle = function (viewTitle) {
 
 
 /**
+ * 视图信息
+ * @class
+ */
+function ViewInfo() {
+  // 视图名称
+  this._viewName = null;
+  // 视图标题
+  this._viewTitle = null;
+  // URL字符串
+  this._fullUrl = null;
+  // URL模式
+  this._urlPattern = null;
+}
+
+ViewInfo.prototype.getViewName = function () {
+  return this._viewName;
+};
+
+ViewInfo.prototype.setViewName = function (viewName) {
+  this._viewName = viewName;
+};
+
+ViewInfo.prototype.getViewTitle = function () {
+  return this._viewTitle;
+};
+
+ViewInfo.prototype.setViewTitle = function (viewTitle) {
+  this._viewTitle = viewTitle;
+};
+
+ViewInfo.prototype.getFullUrl = function () {
+  return this._fullUrl;
+};
+
+ViewInfo.prototype.setFullUrl = function (fullUrl) {
+  this._fullUrl = fullUrl;
+};
+
+ViewInfo.prototype.getUrlPattern = function () {
+  return this._urlPattern;
+};
+
+ViewInfo.prototype.setUrlPattern = function (urlPattern) {
+  this._urlPattern = urlPattern;
+};
+
+
+
+
+/**
+ * 视图响应
+ * @class
+ */
+function ViewResponse(url, jqXHR) {
+  if (Utils.isNullOrUndefined(url)) {
+    throw new Error('argument#0 "url" is null/undefined');
+  }
+
+  if (Utils.isNullOrUndefined(jqXHR)) {
+    throw new Error('argument#1 "jqXHR" is null/undefined');
+  }
+
+  this._url = url;
+  this._jqXHR = jqXHR;
+}
+
+/**
+ * @description 返回视图信息
+ * @returns {ViewInfo}
+ */
+ViewResponse.prototype.getViewInfo = function () {
+  var viewName = this._jqXHR.getResponseHeader(Global.config.viewNameHeaderName);
+  if (Utils.isNullOrUndefined(viewName)) {
+    throw new Error(Global.messages.notFoundviewName);
+  }
+
+  var fullUrl = this._jqXHR.getResponseHeader(Global.config.fullUrlHeaderName);
+  if (Utils.isNullOrUndefined(fullUrl)) {
+    throw new Error(Global.messages.notFoundFullUrl);
+  }
+
+  var urlPattern = this._jqXHR.getResponseHeader(Global.config.urlPatternHeaderName);
+  if (Utils.isNullOrUndefined(urlPattern)) {
+    throw new Error(Global.messages.notFoundUrlPattern);
+  }
+
+  var viewTitle = this._jqXHR.getResponseHeader(Global.config.viewTitleHeaderName);
+  if (Utils.isNotEmptyString(viewTitle)) {
+    viewTitle = decodeURIComponent(viewTitle);
+  }
+
+  var viewInfo = new ViewInfo();
+  viewInfo.setViewName(viewName);
+  viewInfo.setViewTitle(viewTitle);
+  viewInfo.setFullUrl(fullUrl);
+  viewInfo.setUrlPattern(urlPattern);
+
+  return viewInfo;
+};
+
+
+
+
+/**
  * 视图
  * @class
  * @param {(Document|Element)} viewElement 
@@ -642,110 +753,6 @@ View.prototype.$ui = function (name) {
     [this._uiNameAttributeName, name]);
 
   return jqElement.find(selector);
-};
-
-
-
-
-/**
- * 视图信息
- * @class
- */
-function ViewInfo() {
-  // 视图名称
-  this._viewName = null;
-  // 视图标题
-  this._viewTitle = null;
-  // URL字符串
-  this._fullUrl = null;
-  // URL模式
-  this._urlPattern = null;
-}
-
-ViewInfo.prototype.getViewName = function () {
-  return this._viewName;
-};
-
-ViewInfo.prototype.setViewName = function (viewName) {
-  this._viewName = viewName;
-};
-
-ViewInfo.prototype.getViewTitle = function () {
-  return this._viewTitle;
-};
-
-ViewInfo.prototype.setViewTitle = function (viewTitle) {
-  this._viewTitle = viewTitle;
-};
-
-ViewInfo.prototype.getFullUrl = function () {
-  return this._fullUrl;
-};
-
-ViewInfo.prototype.setFullUrl = function (fullUrl) {
-  this._fullUrl = fullUrl;
-};
-
-ViewInfo.prototype.getUrlPattern = function () {
-  return this._urlPattern;
-};
-
-ViewInfo.prototype.setUrlPattern = function (urlPattern) {
-  this._urlPattern = urlPattern;
-};
-
-
-
-
-/**
- * 视图响应
- * @class
- */
-function ViewResponse(url, jqXHR) {
-  if (Utils.isNullOrUndefined(url)) {
-    throw new Error('argument#0 "url" is null/undefined');
-  }
-
-  if (Utils.isNullOrUndefined(jqXHR)) {
-    throw new Error('argument#1 "jqXHR" is null/undefined');
-  }
-
-  this._url = url;
-  this._jqXHR = jqXHR;
-}
-
-/**
- * @description 返回视图信息
- * @returns {ViewInfo}
- */
-ViewResponse.prototype.getViewInfo = function () {
-  var viewName = this._jqXHR.getResponseHeader(Global.config.viewNameHeaderName);
-  if (Utils.isNullOrUndefined(viewName)) {
-    throw new Error(Global.messages.notFoundviewName);
-  }
-
-  var fullUrl = this._jqXHR.getResponseHeader(Global.config.fullUrlHeaderName);
-  if (Utils.isNullOrUndefined(fullUrl)) {
-    throw new Error(Global.messages.notFoundFullUrl);
-  }
-
-  var urlPattern = this._jqXHR.getResponseHeader(Global.config.urlPatternHeaderName);
-  if (Utils.isNullOrUndefined(urlPattern)) {
-    throw new Error(Global.messages.notFoundUrlPattern);
-  }
-
-  var viewTitle = this._jqXHR.getResponseHeader(Global.config.viewTitleHeaderName);
-  if (Utils.isNotEmptyString(viewTitle)) {
-    viewTitle = decodeURIComponent(viewTitle);
-  }
-
-  var viewInfo = new ViewInfo();
-  viewInfo.setViewName(viewName);
-  viewInfo.setViewTitle(viewTitle);
-  viewInfo.setFullUrl(fullUrl);
-  viewInfo.setUrlPattern(urlPattern);
-
-  return viewInfo;
 };
 
 
@@ -1875,9 +1882,9 @@ var Pure = {
     UrlParser: UrlParser,
     BrowserUrl: BrowserUrl,
     BrowserTitle: BrowserTitle,
-    View: View,
     ViewInfo: ViewInfo,
     ViewResponse: ViewResponse,
+    View: View,
     ViewScopeManager: ViewScopeManager,
     LoadedViewHolder: LoadedViewHolder,
     ViewLoader: ViewLoader,

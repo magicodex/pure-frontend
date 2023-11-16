@@ -15,6 +15,7 @@ export const config: {
     viewUrlAttributeName: string;
     viewTitleAttributeName: string;
     viewLoadedAttributeName: string;
+    viewNameAttributeName: string;
 };
 
 export const messages: {
@@ -22,6 +23,16 @@ export const messages: {
     notFoundUrlPattern: string;
     notFoundviewName: string;
     unknownError: string;
+};
+
+export const constants: {
+  VIEW_LOADED_TRUE: string;
+  VIEW_LOADED_FALSE: string;
+  VIEW_LOADED_ERROR: string;
+  VIEW_STATUS_LOADING: string;
+  VIEW_STATUS_ACTIVE: string;
+  VIEW_STATUS_HIDDEN: string;
+  VIEW_STATUS_DESTROY: string;
 };
 
 export function app(): void;
@@ -114,7 +125,7 @@ export namespace fn {
     }
 
     class View {
-        constructor(viewElement: any, viewInfo: any);
+        constructor(viewElement: any, viewInfo: any, viewScope: any);
 
         $find(...args: any[]): JQuery;
 
@@ -154,7 +165,7 @@ export namespace fn {
     }
 
     class LoadedViewHolder {
-        constructor();
+        constructor(loadedView: any);
 
         getViewObject(): View;
 
@@ -202,12 +213,6 @@ export namespace fn {
         constructor(url: any, jqXHR: any);
 
         getViewInfo(): ViewInfo;
-
-        static fullUrlHeaderName: string;
-
-        static urlPatternHeaderName: string;
-
-        static viewNameHeaderName: string;
 
     }
 
@@ -286,6 +291,10 @@ export namespace fn {
             uiNameAttributeName: string;
             viewIndexAttributeName: string;
             viewStatusAttributeName: string;
+            viewUrlAttributeName: string;
+            viewTitleAttributeName: string;
+            viewLoadedAttributeName: string;
+            viewNameAttributeName: string;
         };
 
         const messages: {
@@ -293,6 +302,16 @@ export namespace fn {
             notFoundUrlPattern: string;
             notFoundviewName: string;
             unknownError: string;
+        };
+
+        const constants: {
+            VIEW_LOADED_TRUE: string;
+            VIEW_LOADED_FALSE: string;
+            VIEW_LOADED_ERROR: string;
+            VIEW_STATUS_LOADING: string;
+            VIEW_STATUS_ACTIVE: string;
+            VIEW_STATUS_HIDDEN: string;
+            VIEW_STATUS_DESTROY: string;
         };
 
     }

@@ -63,7 +63,7 @@ class View {
    * @param {(Document|Element)} viewElement 
    * @param {ViewInfo} viewInfo 
    */
-  constructor(viewElement: any, viewInfo: any);
+  constructor(viewElement: any, viewInfo: any, viewScope: any);
 
   /**
    * @description 返回视图对应的 DOM 元素

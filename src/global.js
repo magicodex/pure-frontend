@@ -53,12 +53,19 @@ Global.messages = {
 
 // 全局常量
 Global.constants = {
+  // 视图已加载完成
   VIEW_LOADED_TRUE: 'true',
+  // 视图未加载完成
   VIEW_LOADED_FALSE: 'false',
+  // 视图加载出错
   VIEW_LOADED_ERROR: 'error',
+  // 视图加载状态
   VIEW_STATUS_LOADING: 'loading',
+  // 视图活跃状态
   VIEW_STATUS_ACTIVE: 'active',
+  // 视图隐藏状态
   VIEW_STATUS_HIDDEN: 'hidden',
+  // 视图销毁状态
   VIEW_STATUS_DESTROY: 'destroy'
 };
 
