@@ -47,7 +47,7 @@ ViewLoader.prototype.loadView = function (url) {
     }
   });
 
-  var jqElement = _jQueryObject;
+  var jqElement = this._jQueryObject;
   var viewLoader = this;
   // 标记视图未完成加载
   jqElement.attr(Global.config.viewLoadedAttributeName, Global.constants.VIEW_LOADED_FALSE);
@@ -122,8 +122,8 @@ ViewLoader.prototype.renderView = function (url, data, textStatus, jqXHR) {
   jqElement.html(data);
   // 添加自定义属性
   jqElement.attr(Global.config.viewTitleAttributeName, viewTitle);
-  jqElement.attr(Global.config.viewNameAttributeName, viewName);
   jqElement.attr(Global.config.viewUrlAttributeName, url);
+  jqElement.attr(Global.config.viewNameAttributeName, viewName);
   // 执行初始逻辑
   this.initViewAfterRender();
 
