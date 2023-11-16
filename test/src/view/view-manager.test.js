@@ -20,9 +20,9 @@ QUnit.module('ViewManager', function () {
     var oldSetLocationUrl = BrowserUrl.setLocationUrl;
     try {
       // 重置上下文
-      ViewLoader.sequenceGenerator = new SequenceGenerator(100001);
+      ViewLoader.elementIdSuffixGenerator = new SequenceGenerator(100001);
       ViewLoader.lastViewInfo = {};
-      ViewManager.sequenceGenerator = new SequenceGenerator(100001);
+      ViewLoader.viewIndexSuffixGenerator = new SequenceGenerator(100001);
       ViewScopeManager.viewScopes = {
         'viewName1': {
           'field1': 'value1',
@@ -56,7 +56,6 @@ QUnit.module('ViewManager', function () {
       // 调用方法
       ViewManager.doRenderView('/url/100001');
 
-
       var viewScope = ViewScopeManager.viewScopes['viewName1_100001'];
       assert.ok(viewScope.VIEW != null);
       delete viewScope.VIEW;
@@ -76,9 +75,9 @@ QUnit.module('ViewManager', function () {
       ViewLoader.prototype.loadView = oldLoadView;
       BrowserUrl.setLocationUrl = oldSetLocationUrl;
       ViewScopeManager.viewScopes = {};
-      ViewManager.sequenceGenerator = new SequenceGenerator(100001);
+      ViewLoader.viewIndexSuffixGenerator = new SequenceGenerator(100001);
       ViewLoader.lastViewInfo = {};
-      ViewLoader.sequenceGenerator = new SequenceGenerator(100001);
+      ViewLoader.elementIdSuffixGenerator = new SequenceGenerator(100001);
     }
   });
 

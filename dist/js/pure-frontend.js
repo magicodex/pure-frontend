@@ -1368,7 +1368,7 @@ ViewManager.doRenderView = function (url, afterRenderFn) {
     }
 
     if (!Utils.isNullOrUndefined(afterRenderFn)) {
-      afterRenderFn();
+      afterRenderFn(view.getViewElement());
     }
 
     // 开启视图生命周期
@@ -1436,7 +1436,8 @@ ViewManager.stopViewLifecycle = function (viewElement) {
   var jqView = jQuery(viewElement);
   var viewStatus = jqView.attr(Global.config.viewStatusAttributeName);
 
-  if (!(_VIEW_STATUS_HIDDEN === viewStatus || _VIEW_STATUS_INIT === viewStatus)) {
+  if (!(_VIEW_STATUS_HIDDEN === viewStatus || _VIEW_STATUS_INIT === viewStatus
+    || _VIEW_STATUS_READY === viewStatus)) {
     return;
   }
 
@@ -1476,7 +1477,7 @@ ViewManager.showView = function (viewElement, popMode) {
   var viewObject = viewHolder.getViewObject();
   var viewStatus = viewHolder.getAttrValueFromTagElement(Global.config.viewStatusAttributeName);
 
-  if (!(_VIEW_STATUS_INIT === viewStatus || _VIEW_STATUS_HIDDEN === viewStatus)) {
+  if (!(_VIEW_STATUS_READY === viewStatus || _VIEW_STATUS_HIDDEN === viewStatus)) {
     return;
   }
 
@@ -1518,11 +1519,11 @@ ViewManager.hiddenView = function (viewElement, pushMode) {
   var jqView = jQuery(viewElement);
   var viewStatus = jqView.attr(Global.config.viewStatusAttributeName);
 
-  if (!(_VIEW_STATUS_SHOW === viewStatus || _VIEW_STATUS_INIT === viewStatus)) {
+  if (!(_VIEW_STATUS_SHOW === viewStatus || _VIEW_STATUS_READY === viewStatus)) {
     return;
   }
 
-  if (!(_VIEW_STATUS_INIT === viewStatus)) {
+  if (!(_VIEW_STATUS_READY === viewStatus)) {
     var viewHolder = new LoadedViewHolder(jqView);
     var viewObject = viewHolder.getViewObject();
     var onViewHidden = viewHolder.getPropValueFromViewScope(View.ON_VIEW_HIDDEN);

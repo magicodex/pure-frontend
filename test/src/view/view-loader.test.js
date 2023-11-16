@@ -51,7 +51,7 @@ QUnit.module('ViewLoader', function () {
         }
       };
 
-      var viewLoader = new ViewLoader(jqNewView[0], function (success, viewScope, view) {
+      var viewLoader = new ViewLoader(jqNewView[0], function (success, view, viewScope) {
         callbacnFnCalledFlag = true;
         newViewScope = viewScope;
         newView = view;
