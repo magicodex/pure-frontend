@@ -147,17 +147,19 @@ LoadedViewHolder.getAndCheckViewScope = function (jQueryObject) {
     throw new Error('argument#0 "viewElement" is null/undefined');
   }
 
-  // 获取视图索引
-  var viewIndex = jQueryObject.attr(Global.config.viewIndexAttributeName);
+  var viewName = jQueryObject.attr(Global.config.viewIndexAttributeName);
+  if (Utils.isNullOrUndefined(viewName)) {
+    viewName = jQueryObject.attr(Global.config.viewNameAttributeName);
+  }
 
-  if (Utils.isNullOrUndefined(viewIndex)) {
+  if (Utils.isNullOrUndefined(viewName)) {
     var errorMessage = Utils.formatString('the dom attribute "{0}" is null/undefined',
-      Global.config.viewIndexAttributeName);
+      Global.config.viewNameAttributeName);
 
     throw new Error(errorMessage);
   }
 
-  var viewScope = ViewScopeManager.getViewScope(viewIndex, true);
+  var viewScope = ViewScopeManager.getViewScope(viewName, true);
 
   return viewScope;
 };

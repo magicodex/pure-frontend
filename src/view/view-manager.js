@@ -186,14 +186,12 @@ ViewManager.doRenderView = function (url, afterRenderFn) {
   var jqNewView = jQuery('<main class="pure-view"></main>');
   jqNewView.attr(Global.config.viewStatusAttributeName, _VIEW_STATUS_LOADING);
   jqNewView.attr(Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex);
-  jqNewView.attr(Global.config.viewLoadedAttributeName, _VIEW_LOADED_FALSE);
   jqNewView.css('display', 'none');
   jqNewView.prependTo(jqViewParent);
 
   // 创建视图加载器
   var viewLoader = new ViewLoader(jqNewView[0], function (success, viewScope, view) {
     if (!(success === true)) {
-      jqNewView.attr(Global.config.viewLoadedAttributeName, _VIEW_LOADED_ERROR);
       ViewManager.stopViewLifecycle(jqNewView);
       return;
     }
@@ -204,8 +202,6 @@ ViewManager.doRenderView = function (url, afterRenderFn) {
     var viewIndex = viewName + '_' + sequenceNumber;
     // 记录视图索引
     jqNewView.attr(Global.config.viewIndexAttributeName, viewIndex);
-
-    jqNewView.attr(Global.config.viewLoadedAttributeName, _VIEW_LOADED_TRUE);
 
     // 修改视图作用域的名称以支持同时加载多个相同的视图
     if (!Utils.isNullOrUndefined(viewScope)) {

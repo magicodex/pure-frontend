@@ -954,17 +954,19 @@ LoadedViewHolder.getAndCheckViewScope = function (jQueryObject) {
     throw new Error('argument#0 "viewElement" is null/undefined');
   }
 
-  // 获取视图索引
-  var viewIndex = jQueryObject.attr(Global.config.viewIndexAttributeName);
+  var viewName = jQueryObject.attr(Global.config.viewIndexAttributeName);
+  if (Utils.isNullOrUndefined(viewName)) {
+    viewName = jQueryObject.attr(Global.config.viewNameAttributeName);
+  }
 
-  if (Utils.isNullOrUndefined(viewIndex)) {
+  if (Utils.isNullOrUndefined(viewName)) {
     var errorMessage = Utils.formatString('the dom attribute "{0}" is null/undefined',
-      Global.config.viewIndexAttributeName);
+      Global.config.viewNameAttributeName);
 
     throw new Error(errorMessage);
   }
 
-  var viewScope = ViewScopeManager.getViewScope(viewIndex, true);
+  var viewScope = ViewScopeManager.getViewScope(viewName, true);
 
   return viewScope;
 };
@@ -1335,14 +1337,12 @@ ViewManager.doRenderView = function (url, afterRenderFn) {
   var jqNewView = jQuery('<main class="pure-view"></main>');
   jqNewView.attr(Global.config.viewStatusAttributeName, _VIEW_STATUS_LOADING);
   jqNewView.attr(Global.config.tabIndexAttributeName, ViewManager.currentTab.tabIndex);
-  jqNewView.attr(Global.config.viewLoadedAttributeName, _VIEW_LOADED_FALSE);
   jqNewView.css('display', 'none');
   jqNewView.prependTo(jqViewParent);
 
   // 创建视图加载器
   var viewLoader = new ViewLoader(jqNewView[0], function (success, viewScope, view) {
     if (!(success === true)) {
-      jqNewView.attr(Global.config.viewLoadedAttributeName, _VIEW_LOADED_ERROR);
       ViewManager.stopViewLifecycle(jqNewView);
       return;
     }
@@ -1353,8 +1353,6 @@ ViewManager.doRenderView = function (url, afterRenderFn) {
     var viewIndex = viewName + '_' + sequenceNumber;
     // 记录视图索引
     jqNewView.attr(Global.config.viewIndexAttributeName, viewIndex);
-
-    jqNewView.attr(Global.config.viewLoadedAttributeName, _VIEW_LOADED_TRUE);
 
     // 修改视图作用域的名称以支持同时加载多个相同的视图
     if (!Utils.isNullOrUndefined(viewScope)) {
