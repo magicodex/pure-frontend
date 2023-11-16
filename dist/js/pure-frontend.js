@@ -822,28 +822,20 @@ ViewScopeManager.removeViewScope = function (viewName) {
 
 /**
  * @class
- * @param {(jQuery|Element)} view 
+ * @param {*} loadedView 
  */
-function LoadedViewHolder(view) {
-  var jqView;
-
-  if (view instanceof jQuery) {
-    if (view.length <= 0) {
-      throw new Error('argument#0 "view" is empty');
-    }
-
-    jqView = view;
-  } else if (view instanceof Element) {
-    jqView = jQuery(view);
-  } else {
-    var errorFormat = 'not support argument#0 "view" type "{0}"';
-    var valueType = (typeof view);
-    var errorMessage = Utils.formatString(errorFormat, [valueType]);
-
-    throw new Error(errorMessage);
+function LoadedViewHolder(loadedView) {
+  if (Utils.isNullOrUndefined(loadedView)) {
+    throw new Error('argument#0 "loadedView" is null/undefined');
   }
 
-  this._jqView = jqView;
+  var jQueryObject = LoadedViewHolder.getAndCheckJQueryObject(loadedView);
+  var viewScope = LoadedViewHolder.getAndCheckViewScope(jQueryObject);
+  var viewObject = LoadedViewHolder.getAndCheckViewObject(viewScope);
+
+  this._jQueryObject = jQueryObject;
+  this._viewObject = viewScope;
+  this._viewScope = viewObject;
 }
 
 /**
@@ -851,16 +843,6 @@ function LoadedViewHolder(view) {
  * @returns {View}
  */
 LoadedViewHolder.prototype.getViewObject = function () {
-  var viewScope = this.getViewScope();
-  if (Utils.isNullOrUndefined(viewScope)) {
-    throw new Error('viewScope null/undefined');
-  }
-
-  var viewObject = viewScope.VIEW;
-  if (Utils.isNullOrUndefined(viewObject)) {
-    throw new Error('viewScope.VIEW null/undefined');
-  }
-
   return viewObject;
 };
 
@@ -869,18 +851,6 @@ LoadedViewHolder.prototype.getViewObject = function () {
  * @returns {PlainObject}
  */
 LoadedViewHolder.prototype.getViewScope = function () {
-  var viewIndex = this.getAttrValueFromTagElement(Global.config.viewIndexAttributeName);
-
-  if (Utils.isNullOrUndefined(viewIndex)) {
-    var idValue = this.getAttrValueFromTagElement('id');
-    var errorFormat = 'not found the dom(id={0}) attribute "{1}"';
-    var errorMessage = Utils.formatString(errorFormat, [idValue, Global.config.viewIndexAttributeName]);
-
-    throw new Error(errorMessage);
-  }
-
-  var viewScope = ViewScopeManager.getViewScope(viewIndex, true);
-
   return viewScope;
 };
 
@@ -888,14 +858,14 @@ LoadedViewHolder.prototype.getViewScope = function () {
  * @description 设置视图成可见
  */
 LoadedViewHolder.prototype.setViewToShow = function () {
-  this._jqView.css('display', 'block');
+  this._jQueryObject.css('display', 'block');
 };
 
 /**
  * @description 设置视图成隐藏
  */
 LoadedViewHolder.prototype.setViewToHide = function () {
-  this._jqView.css('display', 'none');
+  this._jQueryObject.css('display', 'none');
 };
 
 /**
@@ -909,10 +879,6 @@ LoadedViewHolder.prototype.getPropValueFromViewScope = function (propName) {
   }
 
   var viewScope = this.getViewScope();
-  if (Utils.isNullOrUndefined(viewScope)) {
-    throw new Error('viewScope null/undefined');
-  }
-
   var propValue = viewScope[propName];;
 
   return propValue;
@@ -929,10 +895,6 @@ LoadedViewHolder.prototype.setPropValueToViewScope = function (propName, propVal
   }
 
   var viewScope = this.getViewScope();
-  if (Utils.isNullOrUndefined(viewScope)) {
-    throw new Error('viewScope null/undefined');
-  }
-
   viewScope[propName] = propValue;
 };
 
@@ -941,7 +903,13 @@ LoadedViewHolder.prototype.setPropValueToViewScope = function (propName, propVal
  * @param {string} attrName 
  */
 LoadedViewHolder.prototype.getAttrValueFromTagElement = function (attrName) {
-  return this._jqView.attr(attrName);
+  if (!Utils.isString(attrName)) {
+    throw new Error('argument#0 "attrName" required string');
+  }
+
+  var attrValue = this._jQueryObject.attr(attrName);
+
+  return attrValue;
 };
 
 /**
@@ -950,8 +918,82 @@ LoadedViewHolder.prototype.getAttrValueFromTagElement = function (attrName) {
  * @param {*} attrValue 
  */
 LoadedViewHolder.prototype.setAttrValueToTagElement = function (attrName, attrValue) {
-  this._jqView.attr(attrName, attrValue);
+  if (!Utils.isString(attrName)) {
+    throw new Error('argument#0 "attrName" required string');
+  }
+
+  this._jQueryObject.attr(attrName, attrValue);
 };
+
+/**
+ * @param {*} loadedView 
+ * @returns {jQueryObject}
+ */
+LoadedViewHolder.getAndCheckJQueryObject = function (loadedView) {
+  if (Utils.isNullOrUndefined(loadedView)) {
+    throw new Error('argument#0 "loadedView" is null/undefined');
+  }
+
+  var jQueryObject = (loadedView instanceof jQuery)
+    ? loadedView : jQuery(loadedView);
+
+  if (jQueryObject.length <= 0) {
+    throw new Error('the jQuery object length is zero');
+  }
+
+  // 获取视图加载结果
+  var viewLoaded = jQueryObject.attr(Global.config.viewLoadedAttributeName);
+
+  if (!(Global.constants.VIEW_LOADED_TRUE === viewLoaded)) {
+    throw new Error('the view is not load completed')
+  }
+
+  return jQueryObject;
+};
+
+/**
+ * @param {*} jQueryObject 
+ * @returns {PlainObject}
+ */
+LoadedViewHolder.getAndCheckViewScope = function (jQueryObject) {
+  if (Utils.isNullOrUndefined(jQueryObject)) {
+    throw new Error('argument#0 "viewElement" is null/undefined');
+  }
+
+  // 获取视图索引
+  var viewIndex = jView.attr(Global.config.viewIndexAttributeName);
+
+  if (Utils.isNullOrUndefined(viewIndex)) {
+    var errorMessage = Utils.formatString('the dom attribute "{0}" is null/undefined',
+      Global.config.viewIndexAttributeName);
+
+    throw new Error(errorMessage);
+  }
+
+  var viewScope = ViewScopeManager.getViewScope(viewIndex, true);
+
+  return viewScope;
+};
+
+/**
+ * @param {*} viewScope 
+ * @returns {View}
+ */
+LoadedViewHolder.getAndCheckViewObject = function (viewScope) {
+  if (Utils.isNullOrUndefined(viewObject)) {
+    throw new Error('argument#0 "viewElement" is null/undefined');
+  }
+
+  // 获取视图对象
+  var viewObject = viewScope.VIEW;
+
+  if (Utils.isNullOrUndefined(viewObject)) {
+    throw new Error('the viewScope property "VIEW" is null/undefined');
+  }
+
+  return viewObject;
+};
+
 
 
 
