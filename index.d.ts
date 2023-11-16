@@ -29,8 +29,9 @@ export const constants: {
   VIEW_LOADED_TRUE: string;
   VIEW_LOADED_FALSE: string;
   VIEW_LOADED_ERROR: string;
-  VIEW_STATUS_LOADING: string;
-  VIEW_STATUS_ACTIVE: string;
+  VIEW_STATUS_INIT: string;
+  VIEW_STATUS_READY: string;
+  VIEW_STATUS_SHOW: string;
   VIEW_STATUS_HIDDEN: string;
   VIEW_STATUS_DESTROY: string;
 };
@@ -308,8 +309,9 @@ export namespace fn {
             VIEW_LOADED_TRUE: string;
             VIEW_LOADED_FALSE: string;
             VIEW_LOADED_ERROR: string;
-            VIEW_STATUS_LOADING: string;
-            VIEW_STATUS_ACTIVE: string;
+            VIEW_STATUS_INIT: string;
+            VIEW_STATUS_READY: string;
+            VIEW_STATUS_SHOW: string;
             VIEW_STATUS_HIDDEN: string;
             VIEW_STATUS_DESTROY: string;
         };

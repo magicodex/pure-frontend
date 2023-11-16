@@ -28,6 +28,7 @@ var _VIEW_LOADED_TRUE = Global.constants.VIEW_LOADED_TRUE;
 var _VIEW_LOADED_FALSE = Global.constants.VIEW_LOADED_FALSE;
 var _VIEW_LOADED_ERROR = Global.constants.VIEW_LOADED_ERROR;
 var _VIEW_STATUS_INIT = Global.constants.VIEW_STATUS_INIT;
+var _VIEW_STATUS_READY = Global.constants.VIEW_STATUS_READY;
 var _VIEW_STATUS_SHOW = Global.constants.VIEW_STATUS_SHOW;
 var _VIEW_STATUS_HIDDEN = Global.constants.VIEW_STATUS_HIDDEN;
 var _VIEW_STATUS_DESTROY = Global.constants.VIEW_STATUS_DESTROY;
