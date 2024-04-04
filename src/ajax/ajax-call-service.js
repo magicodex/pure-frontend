@@ -53,9 +53,7 @@ AjaxCallService.prototype.callService = function (url, data, opts) {
  * @param {jQuery.jqXHR} jqXHR 
  * @param {PlainObject} settings 
  */
-AjaxCallService.prototype.beforeSend = function (jqXHR, settings) {
-  //
-};
+AjaxCallService.prototype.beforeSend = undefined;
 
 /**
  * @description 转换发送到服务器的数据

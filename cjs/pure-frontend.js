@@ -1,7 +1,7 @@
 "use strict";
 
 /*!
- * pure-frontend v1.3.2 (https://gitee.com/magicodex/pure-frontend)
+ * pure-frontend v1.3.3 (https://gitee.com/magicodex/pure-frontend)
  * Licensed under MIT (https://gitee.com/magicodex/pure-frontend/blob/master/LICENSE)
  */
 
@@ -1790,9 +1790,7 @@ AjaxCallService.prototype.callService = function (url, data, opts) {
  * @param {jQuery.jqXHR} jqXHR 
  * @param {PlainObject} settings 
  */
-AjaxCallService.prototype.beforeSend = function (jqXHR, settings) {
-  //
-};
+AjaxCallService.prototype.beforeSend = undefined;
 
 /**
  * @description 转换发送到服务器的数据
