@@ -330,7 +330,9 @@ export namespace fn {
     }
 
     namespace Utils {
-        function concatObjects(objectArray: any, ...args: any[]): any;
+        function concatObjects(...objectArray: any[]): any;
+
+        function concatObjectsWithOption(skipUndefinedProperties: boolean, ...objectArray: any[]): any;
 
         function convertToString(arg: any): any;
 
@@ -340,7 +342,7 @@ export namespace fn {
 
         function emptyStringIfNullOrUndefined(arg: any): any;
 
-        function formatString(format: any, objectArray: any, ...args: any[]): any;
+        function formatString(format: any, ...objectArray: any[]): any;
 
         function isFunction(arg: any): any;
 
@@ -413,7 +415,9 @@ export namespace fn {
 }
 
 export namespace utils {
-    function concatObjects(objectArray: any, ...args: any[]): any;
+    function concatObjects(...objectArray: any[]): any;
+
+    function concatObjectsWithOption(skipUndefinedProperties: boolean, ...objectArray: any[]): any;
 
     function convertToString(arg: any): any;
 
@@ -423,7 +427,7 @@ export namespace utils {
 
     function emptyStringIfNullOrUndefined(arg: any): any;
 
-    function formatString(format: any, objectArray: any, ...args: any[]): any;
+    function formatString(format: any, ...objectArray: any[]): any;
 
     function isFunction(arg: any): any;
 

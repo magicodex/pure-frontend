@@ -41,7 +41,7 @@ AjaxCallService.prototype.callService = function (url, data, opts) {
     }
   };
 
-  var newOpts = Utils.concatObjects([initOpts, opts]);
+  var newOpts = Utils.concatObjectsWithOption(true, [initOpts, opts]);
   var deferred = jQuery.ajax(newOpts);
   var ajaxResult = new AjaxResult(deferred, this._sourceElement);
 

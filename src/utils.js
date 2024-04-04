@@ -194,6 +194,41 @@ Utils.concatObjects = function (objectArray) {
   return newObj;
 };
 
+/**
+ * @description 合并多个对象的字段到新的对象上
+ * @param {boolean} skipUndefinedProperties
+ * @param {(object[]|...object)} objectArray 
+ * @returns {object}
+ */
+Utils.concatObjectsWithOption = function (skipUndefinedProperties, objectArray) {
+  if (!(objectArray instanceof Array)) {
+    objectArray = [];
+
+    for (var index = 1; index < arguments.length; index++) {
+      objectArray.push(arguments[index]);
+    }
+  }
+
+  var newObj = {};
+  var value;
+
+  for (var index = 0; index < objectArray.length; index++) {
+    var obj = objectArray[index];
+
+    for (var key in obj) {
+      value = obj[key];
+
+      if (skipUndefinedProperties && (value === undefined)) {
+        continue;
+      }
+
+      newObj[key] = value;
+    }
+  }
+
+  return newObj;
+}
+
 /* SOURCE-CODE-END */
 
 export { Utils };

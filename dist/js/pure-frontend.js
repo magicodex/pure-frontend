@@ -1,7 +1,7 @@
 "use strict";
 
 /*!
- * pure-frontend v1.3.1 (https://gitee.com/magicodex/pure-frontend)
+ * pure-frontend v1.3.2 (https://gitee.com/magicodex/pure-frontend)
  * Licensed under MIT (https://gitee.com/magicodex/pure-frontend/blob/master/LICENSE)
  */
 
@@ -277,6 +277,41 @@ Utils.concatObjects = function (objectArray) {
 
   return newObj;
 };
+
+/**
+ * @description 合并多个对象的字段到新的对象上
+ * @param {boolean} skipUndefinedProperties
+ * @param {(object[]|...object)} objectArray 
+ * @returns {object}
+ */
+Utils.concatObjectsWithOption = function (skipUndefinedProperties, objectArray) {
+  if (!(objectArray instanceof Array)) {
+    objectArray = [];
+
+    for (var index = 1; index < arguments.length; index++) {
+      objectArray.push(arguments[index]);
+    }
+  }
+
+  var newObj = {};
+  var value;
+
+  for (var index = 0; index < objectArray.length; index++) {
+    var obj = objectArray[index];
+
+    for (var key in obj) {
+      value = obj[key];
+
+      if (skipUndefinedProperties && (value === undefined)) {
+        continue;
+      }
+
+      newObj[key] = value;
+    }
+  }
+
+  return newObj;
+}
 
 
 
@@ -1749,7 +1784,7 @@ AjaxCallService.prototype.callService = function (url, data, opts) {
     }
   };
 
-  var newOpts = Utils.concatObjects([initOpts, opts]);
+  var newOpts = Utils.concatObjectsWithOption(true, [initOpts, opts]);
   var deferred = jQuery.ajax(newOpts);
   var ajaxResult = new AjaxResult(deferred, this._sourceElement);
 

@@ -73,4 +73,27 @@ QUnit.module('Utils', function () {
     });
   });
 
+  QUnit.test('concatObjectsWithOption', function (assert) {
+    // 不忽略 undefined 属性
+    {
+      var actual = Utils.concatObjectsWithOption(false, { 'key1': 'value1' }, { 'key2': 'value2', 'key3': undefined });
+
+      assert.deepEqual(actual, {
+        'key1': 'value1',
+        'key2': 'value2',
+        'key3': undefined
+      });
+    }
+
+    // 忽略 undefined 属性
+    {
+      var actual = Utils.concatObjectsWithOption(true, { 'key1': 'value1' }, { 'key2': 'value2', 'key3': undefined });
+
+      assert.deepEqual(actual, {
+        'key1': 'value1',
+        'key2': 'value2'
+      });
+    }
+  });
+
 });
