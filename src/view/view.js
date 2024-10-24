@@ -80,7 +80,7 @@ View.prototype.getDataModel = function () {
 };
 
 /**
- * @description 返回 URL 参数
+ * @description 返回 URL 参数，需要服务端返回 URL 相关信息，可通过改写 ViewResponse 变更获取方式。
  * @returns {object}
  */
 View.prototype.getUrlParams = function () {
@@ -88,7 +88,7 @@ View.prototype.getUrlParams = function () {
 };
 
 /**
- * @description 返回 URL 参数
+ * @description 返回 URL 参数，需要服务端返回 URL 相关信息，可通过改写 ViewResponse 变更获取方式。
  * @param {string} name 
  * @returns {string}
  */

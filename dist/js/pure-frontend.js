@@ -1,7 +1,7 @@
 "use strict";
 
 /*!
- * pure-frontend v1.3.3 (https://gitee.com/magicodex/pure-frontend)
+ * pure-frontend v1.3.4 (https://gitee.com/magicodex/pure-frontend)
  * Licensed under MIT (https://gitee.com/magicodex/pure-frontend/blob/master/LICENSE)
  */
 
@@ -637,25 +637,10 @@ function ViewResponse(url, jqXHR) {
  * @returns {ViewInfo}
  */
 ViewResponse.prototype.getViewInfo = function () {
-  var viewName = this._jqXHR.getResponseHeader(Global.config.viewNameHeaderName);
-  if (Utils.isNullOrUndefined(viewName)) {
-    throw new Error(Global.messages.notFoundviewName);
-  }
-
-  var fullUrl = this._jqXHR.getResponseHeader(Global.config.fullUrlHeaderName);
-  if (Utils.isNullOrUndefined(fullUrl)) {
-    throw new Error(Global.messages.notFoundFullUrl);
-  }
-
-  var urlPattern = this._jqXHR.getResponseHeader(Global.config.urlPatternHeaderName);
-  if (Utils.isNullOrUndefined(urlPattern)) {
-    throw new Error(Global.messages.notFoundUrlPattern);
-  }
-
-  var viewTitle = this._jqXHR.getResponseHeader(Global.config.viewTitleHeaderName);
-  if (Utils.isNotEmptyString(viewTitle)) {
-    viewTitle = decodeURIComponent(viewTitle);
-  }
+  var viewName = this.getViewName();
+  var viewTitle = this.getViewTitle();
+  var fullUrl = this.getFullUrl();
+  var urlPattern = this.getUrlPattern();
 
   var viewInfo = new ViewInfo();
   viewInfo.setViewName(viewName);
@@ -664,6 +649,45 @@ ViewResponse.prototype.getViewInfo = function () {
   viewInfo.setUrlPattern(urlPattern);
 
   return viewInfo;
+};
+
+ViewResponse.prototype.getViewName = function() {
+  var viewName = this._jqXHR.getResponseHeader(Global.config.viewNameHeaderName);
+  if (Utils.isNullOrUndefined(viewName)) {
+    //throw new Error(Global.messages.notFoundviewName);
+    viewName = this._url;
+  }
+
+  return viewName;
+};
+
+ViewResponse.prototype.getViewTitle = function() {
+  var viewTitle = this._jqXHR.getResponseHeader(Global.config.viewTitleHeaderName);
+  if (Utils.isNotEmptyString(viewTitle)) {
+    viewTitle = decodeURIComponent(viewTitle);
+  }
+
+  return viewTitle;
+};
+
+ViewResponse.prototype.getFullUrl = function() {
+  var fullUrl = this._jqXHR.getResponseHeader(Global.config.fullUrlHeaderName);
+  if (Utils.isNullOrUndefined(fullUrl)) {
+    //throw new Error(Global.messages.notFoundFullUrl);
+    fullUrl = "";
+  }
+
+  return fullUrl;
+};
+
+ViewResponse.prototype.getUrlPattern = function() {
+  var urlPattern = this._jqXHR.getResponseHeader(Global.config.urlPatternHeaderName);
+  if (Utils.isNullOrUndefined(urlPattern)) {
+    //throw new Error(Global.messages.notFoundUrlPattern);
+    urlPattern = ""
+  }
+
+  return urlPattern;
 };
 
 
@@ -738,7 +762,7 @@ View.prototype.getDataModel = function () {
 };
 
 /**
- * @description 返回 URL 参数
+ * @description 返回 URL 参数，需要服务端返回 URL 相关信息，可通过改写 ViewResponse 变更获取方式。
  * @returns {object}
  */
 View.prototype.getUrlParams = function () {
@@ -746,7 +770,7 @@ View.prototype.getUrlParams = function () {
 };
 
 /**
- * @description 返回 URL 参数
+ * @description 返回 URL 参数，需要服务端返回 URL 相关信息，可通过改写 ViewResponse 变更获取方式。
  * @param {string} name 
  * @returns {string}
  */
